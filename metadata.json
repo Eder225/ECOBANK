@@ -1,0 +1,5 @@
+{
+  "name": "Ecobank",
+  "description": "A modern banking dashboard for Ecobank customers featuring account management, transfers, and card controls.",
+  "requestFramePermissions": []
+}
