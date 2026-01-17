@@ -9,14 +9,14 @@ interface WalletProps {
   lang: Language;
 }
 
-// Adjusted wallet history for a new account (0 -> 100M)
+// Adjusted wallet history for timeline starting 2026
 const mockWalletData = [
-  { name: 'May', value: 0 },
-  { name: 'Jun', value: 0 },
-  { name: 'Jul', value: 0 },
-  { name: 'Aug', value: 0 },
-  { name: 'Sep', value: 0 },
-  { name: 'Oct', value: 195000000 },
+  { name: 'Dec', value: 0 },
+  { name: 'Jan', value: 195000000 },
+  { name: 'Feb', value: 195000000 },
+  { name: 'Mar', value: 195000000 },
+  { name: 'Apr', value: 195000000 },
+  { name: 'May', value: 195000000 }, 
 ];
 
 const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {

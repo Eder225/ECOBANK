@@ -20,14 +20,14 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
     }).format(amount);
   };
 
-  // Mock data for graphs - New account profile
+  // Mock data for graphs - New account profile starting 2026
   const monthlyData = [
+    { name: 'Dec', income: 0, expense: 0 },
+    { name: 'Jan', income: 195000000, expense: 0 },
+    { name: 'Feb', income: 0, expense: 0 },
+    { name: 'Mar', income: 0, expense: 0 },
+    { name: 'Apr', income: 0, expense: 0 },
     { name: 'May', income: 0, expense: 0 },
-    { name: 'Jun', income: 0, expense: 0 },
-    { name: 'Jul', income: 0, expense: 0 },
-    { name: 'Aug', income: 0, expense: 0 },
-    { name: 'Sep', income: 0, expense: 0 },
-    { name: 'Oct', income: 195000000, expense: 0 },
   ];
 
   // Placeholder data for categories since we have no expenses yet

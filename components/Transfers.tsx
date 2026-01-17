@@ -23,7 +23,8 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
   const t = TRANSLATIONS[lang];
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
-  const [timestamp] = useState(new Date());
+  // Defaulting to a date in 2026 for the transfer summary
+  const [timestamp] = useState(new Date('2026-01-12T14:30:00'));
   
   const [data, setData] = useState<TransferData>({
     accountId: accounts.length > 0 ? accounts[0].id : '',

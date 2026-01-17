@@ -11,15 +11,15 @@ interface DashboardProps {
   lang: Language;
 }
 
-// Adjusted chart data for a new account (1 week old)
+// Adjusted chart data for new timeline (Start of 2026)
 const chartData = [
-  { name: 'May', value: 0 },
-  { name: 'Jun', value: 0 },
-  { name: 'Jul', value: 0 },
-  { name: 'Aug', value: 0 },
-  { name: 'Sep', value: 0 },
-  { name: 'Oct', value: 0 },
-  { name: 'Nov', value: 195000000 }, 
+  { name: 'Dec', value: 0 },
+  { name: 'Jan', value: 195000000 },
+  { name: 'Feb', value: 195000000 },
+  { name: 'Mar', value: 195000000 },
+  { name: 'Apr', value: 195000000 },
+  { name: 'May', value: 195000000 },
+  { name: 'Jun', value: 195000000 }, 
 ];
 
 const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lang }) => {
@@ -42,7 +42,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
   const formatDate = (dateString: string) => {
       return new Date(dateString).toLocaleDateString(lang === Language.FR ? 'fr-FR' : 'en-GB', {
           day: 'numeric',
-          month: 'short'
+          month: 'short',
+          year: 'numeric'
       });
   };
 

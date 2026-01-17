@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Lock, Globe, Shield, ToggleLeft, ToggleRight, User, Key, Save } from 'lucide-react';
+import { Bell, Lock, Globe, Shield, ToggleLeft, ToggleRight, User as UserIcon, Key, Save, X, Check } from 'lucide-react';
 import { Language, User as UserType } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -14,6 +14,7 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [twoFactor, setTwoFactor] = useState(false);
+  const [changePasswordMode, setChangePasswordMode] = useState(false);
 
   const Toggle = ({ active, onClick }: { active: boolean, onClick: () => void }) => (
     <button onClick={onClick} className={`transition-colors ${active ? 'text-teal-600' : 'text-slate-300'}`}>
@@ -25,13 +26,13 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
     <div className="max-w-4xl mx-auto space-y-8 pb-10">
       <h2 className="text-3xl font-bold text-slate-900 mb-6">{t.settings}</h2>
 
-      {/* Account Overview */}
+      {/* Account Overview - Removed Email and Avatar */}
       <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-6">
-        <img src={user.avatar} alt={user.name} className="w-20 h-20 rounded-full object-cover border-4 border-slate-50" />
+        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-4 border-slate-50">
+            <UserIcon size={40} />
+        </div>
         <div>
             <h3 className="font-bold text-lg text-slate-900">{user.name}</h3>
-            <p className="text-slate-500 text-sm">{user.email}</p>
-            <button className="text-teal-600 text-sm font-semibold mt-2 hover:underline">Edit Profile</button>
         </div>
       </div>
 
@@ -97,18 +98,57 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
                 {t.securitySettings}
             </h3>
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                        <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
-                            <Key size={20} />
+                {/* Change Password Section */}
+                {!changePasswordMode ? (
+                    <div className="p-5 border-b border-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+                                <Key size={20} />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-slate-800">{t.changePassword}</p>
+                                <p className="text-xs text-slate-500">Last changed 3 months ago</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-semibold text-slate-800">{t.changePassword}</p>
-                            <p className="text-xs text-slate-500">Last changed 3 months ago</p>
-                        </div>
+                        <button 
+                            onClick={() => setChangePasswordMode(true)}
+                            className="text-sm font-semibold text-slate-600 border border-slate-200 px-4 py-2 rounded-lg hover:bg-white transition-colors"
+                        >
+                            Update
+                        </button>
                     </div>
-                    <button className="text-sm font-semibold text-slate-600 border border-slate-200 px-4 py-2 rounded-lg hover:bg-white transition-colors">Update</button>
-                </div>
+                ) : (
+                     <div className="p-5 border-b border-slate-50 bg-slate-50">
+                        <div className="flex items-center gap-4 mb-4">
+                             <div className="p-2 bg-teal-100 rounded-lg text-teal-600">
+                                <Key size={20} />
+                            </div>
+                            <p className="font-semibold text-slate-800">{t.changePassword}</p>
+                        </div>
+                        <div className="space-y-3">
+                            <input type="password" placeholder="Current Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                            <input type="password" placeholder="New Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                            <input type="password" placeholder="Confirm New Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                        </div>
+                        <div className="flex justify-end gap-3 mt-4">
+                            <button 
+                                onClick={() => setChangePasswordMode(false)}
+                                className="text-sm font-medium text-slate-500 hover:text-slate-700 px-3 py-2"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={() => setChangePasswordMode(false)}
+                                className="text-sm font-medium bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center gap-2"
+                            >
+                                <Check size={16} />
+                                Save Password
+                            </button>
+                        </div>
+                     </div>
+                )}
+
+
                 <div className="p-5 flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
