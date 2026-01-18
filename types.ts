@@ -40,6 +40,7 @@ export interface Transaction {
   type: 'credit' | 'debit';
   category: string;
   logo?: string;
+  status?: 'completed' | 'failed';
 }
 
 export interface Card {

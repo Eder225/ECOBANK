@@ -12,7 +12,7 @@ import Cashback from './components/Cashback';
 import Support from './components/Support';
 import Settings from './components/Settings';
 import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS, CARDS } from './constants';
-import { Tab, Language, Notification } from './types';
+import { Tab, Language, Notification, Transaction } from './types';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<Language>(Language.FR);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -42,6 +43,10 @@ const App: React.FC = () => {
     setNotifications(prev => [newNotif, ...prev]);
   };
 
+  const addTransaction = (tx: Transaction) => {
+    setTransactions(prev => [tx, ...prev]);
+  };
+
   const markNotificationsAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
@@ -49,11 +54,11 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case Tab.DASHBOARD:
-        return <Dashboard user={CURRENT_USER} accounts={ACCOUNTS} transactions={RECENT_TRANSACTIONS} lang={lang} />;
+        return <Dashboard user={CURRENT_USER} accounts={ACCOUNTS} transactions={transactions} lang={lang} />;
       case Tab.WALLET:
         return <Wallet accounts={ACCOUNTS} lang={lang} />;
       case Tab.TRANSFERS:
-        return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} />;
+        return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} addTransaction={addTransaction} />;
       case Tab.CARDS:
         return <Cards cards={CARDS} lang={lang} />;
       case Tab.PROFILE:
@@ -67,7 +72,7 @@ const App: React.FC = () => {
       case Tab.SETTINGS:
         return <Settings user={CURRENT_USER} lang={lang} setLang={setLang} />;
       default:
-        return <Dashboard user={CURRENT_USER} accounts={ACCOUNTS} transactions={RECENT_TRANSACTIONS} lang={lang} />;
+        return <Dashboard user={CURRENT_USER} accounts={ACCOUNTS} transactions={transactions} lang={lang} />;
     }
   };
 
