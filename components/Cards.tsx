@@ -47,11 +47,11 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
-          <div key={card.id} className={`relative rounded-2xl p-6 text-white h-56 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:-translate-y-1 ${
+          <div key={card.id} className={`relative rounded-2xl p-5 md:p-6 text-white w-full aspect-[1.586/1] flex flex-col justify-between overflow-hidden transition-all duration-500 hover:-translate-y-1 ${
             card.status === 'frozen' ? 'bg-slate-500 grayscale' : 'bg-gradient-to-br from-teal-600 to-teal-900 shadow-xl shadow-teal-900/20'
           }`}>
             <div className="flex justify-between items-start z-10">
-              <span className="font-mono opacity-80">{card.type}</span>
+              <span className="font-mono opacity-80 text-sm md:text-base">{card.type}</span>
               <div className="flex items-center gap-2">
                   <button 
                     onClick={() => toggleVisibility(card.id)} 
@@ -59,26 +59,26 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
                   >
                     {visibleCards[card.id] ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
-                  <div className={`px-2 py-1 rounded text-xs font-bold transition-colors duration-300 ${card.status === 'active' ? 'bg-white/20' : 'bg-slate-700 text-white'}`}>
+                  <div className={`px-2 py-1 rounded text-[10px] md:text-xs font-bold transition-colors duration-300 ${card.status === 'active' ? 'bg-white/20' : 'bg-slate-700 text-white'}`}>
                     {card.status === 'active' ? t.active : t.frozen}
                   </div>
               </div>
             </div>
 
-            <div className="z-10 text-center mt-4">
-                <p className="font-mono text-xl tracking-widest drop-shadow-md transition-all duration-300">
+            <div className="z-10 text-center mt-2">
+                <p className="font-mono text-lg md:text-xl tracking-widest drop-shadow-md transition-all duration-300">
                     {visibleCards[card.id] ? card.number : `•••• •••• •••• ${card.number.slice(-4)}`}
                 </p>
             </div>
 
             <div className="flex justify-between items-end z-10 mt-auto">
               <div>
-                <p className="text-[10px] opacity-70 uppercase mb-0.5">Card Holder</p>
-                <p className="font-medium tracking-wide text-sm truncate max-w-[180px]">{card.holder}</p>
+                <p className="text-[9px] md:text-[10px] opacity-70 uppercase mb-0.5">Card Holder</p>
+                <p className="font-medium tracking-wide text-xs md:text-sm truncate max-w-[120px] md:max-w-[180px]">{card.holder}</p>
               </div>
               <div>
-                <p className="text-[10px] opacity-70 uppercase text-right mb-0.5">Expires</p>
-                <p className="font-medium tracking-wide text-sm">{card.expiry}</p>
+                <p className="text-[9px] md:text-[10px] opacity-70 uppercase text-right mb-0.5">Expires</p>
+                <p className="font-medium tracking-wide text-xs md:text-sm">{card.expiry}</p>
               </div>
             </div>
             

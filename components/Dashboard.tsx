@@ -204,7 +204,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
             </div>
             
             {/* Credit Card Component - Updated Logic & Sizes */}
-            <div className={`relative w-full aspect-[1.586/1] rounded-2xl p-7 md:p-9 text-white flex flex-col justify-between shadow-2xl overflow-hidden transition-all duration-300 group ${
+            <div className={`relative w-full aspect-[1.586/1] rounded-2xl p-5 md:p-9 text-white flex flex-col justify-between shadow-2xl overflow-hidden transition-all duration-300 group ${
                 userCard.status === 'frozen' ? 'bg-slate-500 grayscale shadow-none' : 'shadow-teal-900/20 hover:scale-[1.01]'
             }`} 
                  style={{ backgroundColor: userCard.status === 'frozen' ? undefined : '#00A88F' }}>
@@ -224,30 +224,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
 
                 {/* Top Row: Chip & Visa & Eye Toggle */}
                 <div className="flex justify-between items-start z-10">
-                    {/* Chip - Larger */}
-                    <div className="w-14 h-11 bg-gradient-to-tr from-[#d4af37] via-[#f9e58e] to-[#d4af37] rounded-lg relative overflow-hidden shadow-sm border border-[#b8860b]/30">
+                    {/* Chip - Responsive Sizes */}
+                    <div className="w-11 h-8 md:w-14 md:h-11 bg-gradient-to-tr from-[#d4af37] via-[#f9e58e] to-[#d4af37] rounded-lg relative overflow-hidden shadow-sm border border-[#b8860b]/30">
                          {/* Simple chip pattern */}
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/20"></div>
                          <div className="absolute top-0 left-1/2 h-full w-[1px] bg-black/20"></div>
                          <div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] border border-black/10 rounded-sm"></div>
                     </div>
                     
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-end gap-1 md:gap-2">
                          {/* Integrated Show/Hide Toggle */}
                          <button 
                             onClick={(e) => { e.stopPropagation(); setShowCardDetails(!showCardDetails); }}
                             className="text-white/70 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
                          >
-                             {showCardDetails ? <EyeOff size={24} /> : <Eye size={24} />}
+                             {showCardDetails ? <EyeOff size={20} className="md:w-6 md:h-6" /> : <Eye size={20} className="md:w-6 md:h-6" />}
                          </button>
-                         {/* Visa Logo - Larger */}
-                         <span className="font-bold text-4xl italic tracking-tighter drop-shadow-sm">VISA</span>
+                         {/* Visa Logo - Responsive */}
+                         <span className="font-bold text-2xl md:text-4xl italic tracking-tighter drop-shadow-sm">VISA</span>
                     </div>
                 </div>
 
-                {/* Middle: Number - Larger */}
-                <div className="z-10 flex items-center justify-center mt-4 mb-2">
-                     <p className="font-mono text-2xl md:text-3xl lg:text-4xl tracking-widest drop-shadow-md flex items-center gap-4 md:gap-6 font-medium text-shadow w-full justify-center">
+                {/* Middle: Number - Responsive Sizes */}
+                <div className="z-10 flex items-center justify-center mt-2 md:mt-4 mb-2">
+                     <p className="font-mono text-lg sm:text-2xl md:text-3xl lg:text-4xl tracking-widest drop-shadow-md flex items-center gap-2 sm:gap-4 md:gap-6 font-medium text-shadow w-full justify-center">
                         {showCardDetails ? (
                             <>
                                 <span>{cleanNumber.slice(0,4)}</span>
@@ -266,15 +266,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                      </p>
                 </div>
 
-                {/* Bottom Row: Holder & Expiry - Larger */}
+                {/* Bottom Row: Holder & Expiry - Responsive Sizes */}
                 <div className="z-10 flex justify-between items-end">
                     <div>
-                        <p className="text-[10px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-1 font-semibold text-shadow-sm">Card Holder</p>
-                        <p className="font-mono text-sm md:text-lg uppercase tracking-widest font-medium text-shadow-sm truncate max-w-[180px] md:max-w-[250px]">{userCard.holder}</p>
+                        <p className="text-[9px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-1 font-semibold text-shadow-sm">Card Holder</p>
+                        <p className="font-mono text-xs sm:text-sm md:text-lg uppercase tracking-widest font-medium text-shadow-sm truncate max-w-[120px] sm:max-w-[180px] md:max-w-[250px]">{userCard.holder}</p>
                     </div>
                     <div>
-                         <p className="text-[10px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-1 font-semibold text-right text-shadow-sm">Expires</p>
-                         <p className="font-mono text-sm md:text-lg tracking-widest font-medium text-right text-shadow-sm">{userCard.expiry}</p>
+                         <p className="text-[9px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-1 font-semibold text-right text-shadow-sm">Expires</p>
+                         <p className="font-mono text-xs sm:text-sm md:text-lg tracking-widest font-medium text-right text-shadow-sm">{userCard.expiry}</p>
                     </div>
                 </div>
             </div>
