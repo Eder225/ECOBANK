@@ -4,7 +4,8 @@ export const CURRENT_USER: User = {
   id: 'u1',
   name: 'RHODIN Sofia Ann-Charlotte',
   email: 'sofia.rhodin@ecobank.com',
-  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+  // Using a generic placeholder instead of a specific person's photo
+  avatar: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
 };
 
 export const ACCOUNTS: Account[] = [
@@ -170,7 +171,7 @@ export const TRANSLATIONS = {
     faq4: 'How can I download my account statement or IBAN?',
     faq4Desc: 'You can download official account statements (PDF/Excel) and your IBAN details directly from the "Wallet" tab. Select the specific account, click on "Details" or the three dots menu, and choose "Download Statement". You can customize the date range for statements up to the last 24 months.',
     faq5: 'What are the fees for interbank transfers?',
-    faq5Desc: 'Transfers between your own Ecobank accounts are completely free. Transfers to other Ecobank accounts within the same country are also free. Transfers to other banks within the WAEMU zone incur a flat fee of 500 XOF regardless of the amount. Instant transfers may carry an additional surcharge of 1% of the transaction value.',
+    faq5Desc: 'Transfers between your own Ecobank accounts are completely free. Transfers to other Ecobank accounts within the same country are also free. Transfers to other banks within the WAEMU zone incur a flat fee of 500 XOF, quel que soit le montant. Instant transfers may carry an additional surcharge of 1% of the transaction value.',
     generalSettings: 'General',
     notifications: 'Notifications',
     emailNotif: 'Email Notifications',

@@ -7,9 +7,10 @@ interface SettingsProps {
   user: UserType;
   lang: Language;
   setLang: (lang: Language) => void;
+  addNotification: (msg: string) => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
+const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotification }) => {
   const t = TRANSLATIONS[lang];
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
@@ -21,6 +22,13 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
         {active ? <ToggleRight size={40} /> : <ToggleLeft size={40} />}
     </button>
   );
+
+  const handleSave = () => {
+      addNotification(lang === Language.FR 
+        ? "Vos préférences ont été enregistrées avec succès." 
+        : "Your settings have been saved successfully.");
+      setChangePasswordMode(false);
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-10">
@@ -138,7 +146,7 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
                                 Cancel
                             </button>
                             <button 
-                                onClick={() => setChangePasswordMode(false)}
+                                onClick={handleSave}
                                 className="text-sm font-medium bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center gap-2"
                             >
                                 <Check size={16} />
@@ -166,7 +174,10 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang }) => {
       </div>
       
       <div className="flex justify-end pt-4">
-          <button className="flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-teal-200 hover:bg-teal-700 transition-colors">
+          <button 
+            onClick={handleSave}
+            className="flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-teal-200 hover:bg-teal-700 transition-colors"
+          >
               <Save size={18} />
               {t.saveChanges}
           </button>

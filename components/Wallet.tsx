@@ -7,6 +7,7 @@ import { TRANSLATIONS } from '../constants';
 interface WalletProps {
   accounts: Account[];
   lang: Language;
+  addNotification: (msg: string) => void;
 }
 
 // Adjusted wallet history for timeline starting 2026
@@ -19,7 +20,7 @@ const mockWalletData = [
   { name: 'May', value: 195000000 }, 
 ];
 
-const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
+const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
   const t = TRANSLATIONS[lang];
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
@@ -46,11 +47,26 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
     alert(lang === Language.FR ? "Le téléchargement du RIB a commencé..." : "IBAN download started...");
   };
 
+  const handleAddMoney = () => {
+    addNotification(lang === Language.FR 
+        ? "Rechargement simulé : Votre solde sera mis à jour prochainement." 
+        : "Simulated Top-up: Your balance will be updated shortly.");
+  };
+
+  const handleOpenSavings = () => {
+    addNotification(lang === Language.FR 
+        ? "Demande d'ouverture de compte épargne envoyée." 
+        : "Savings account opening request sent.");
+  };
+
   return (
     <div className="space-y-6 pb-10" onClick={() => setActiveMenuId(null)}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-bold text-slate-900">{t.wallet}</h2>
-        <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2">
+        <button 
+            onClick={handleAddMoney}
+            className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"
+        >
             <Plus size={16} />
             {t.addMoney}
         </button>
@@ -210,7 +226,10 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
                 ))}
                 
                 {/* Mock Savings Account */}
-                <div className="p-4 rounded-2xl bg-teal-50 hover:bg-teal-100 transition-colors border border-teal-100 group cursor-pointer border-dashed">
+                <div 
+                    onClick={handleOpenSavings}
+                    className="p-4 rounded-2xl bg-teal-50 hover:bg-teal-100 transition-colors border border-teal-100 group cursor-pointer border-dashed"
+                >
                     <div className="flex justify-between items-start mb-2">
                         <div className="p-2 bg-white rounded-lg text-teal-600 shadow-sm">
                             <Plus size={18} />

@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Copy, Eye, EyeOff, Snowflake, Plus } from 'lucide-react';
+import { Copy, Eye, EyeOff, Snowflake, Plus, ShieldCheck } from 'lucide-react';
 import { Card, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
 interface CardsProps {
   cards: Card[];
   lang: Language;
+  addNotification: (msg: string) => void;
 }
 
-const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
+const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotification }) => {
   const t = TRANSLATIONS[lang];
   const [cards, setCards] = useState<Card[]>(initialCards);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+  const [showPin, setShowPin] = useState(false);
 
   const toggleVisibility = (id: string) => {
     setVisibleCards(prev => ({
@@ -21,8 +23,10 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
   };
 
   const toggleFreeze = (id: string) => {
+    let newState = '';
     setCards(prevCards => prevCards.map(card => {
         if (card.id === id) {
+            newState = card.status === 'active' ? 'frozen' : 'active';
             return {
                 ...card,
                 status: card.status === 'active' ? 'frozen' : 'active'
@@ -30,6 +34,22 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
         }
         return card;
     }));
+    
+    if(newState) {
+        addNotification(lang === Language.FR 
+            ? `Carte ${newState === 'frozen' ? 'bloquée' : 'débloquée'}` 
+            : `Card ${newState === 'frozen' ? 'frozen' : 'unfrozen'}`);
+    }
+  };
+  
+  const handleAddCard = () => {
+      addNotification(lang === Language.FR 
+        ? "Votre demande de nouvelle carte a été prise en compte." 
+        : "Your request for a new card has been received.");
+  };
+
+  const togglePin = () => {
+      setShowPin(!showPin);
   };
 
   // For the settings panel, we'll focus on the first card for this demo
@@ -39,7 +59,10 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800">{t.myCards}</h2>
-        <button className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
+        <button 
+            onClick={handleAddCard}
+            className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+        >
             <Plus size={16} />
             <span>{lang === Language.FR ? 'Nouvelle Carte' : 'Add New Card'}</span>
         </button>
@@ -114,14 +137,19 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group">
+                <div 
+                    onClick={togglePin}
+                    className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors group"
+                >
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center group-hover:bg-teal-100 transition-colors">
-                            <Eye size={20} />
+                            {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
                         </div>
                         <div>
                             <p className="font-medium text-slate-800">{lang === Language.FR ? 'Voir le code PIN' : 'Show PIN'}</p>
-                            <p className="text-xs text-slate-500">{lang === Language.FR ? 'Afficher votre code à 4 chiffres' : "View your card's 4-digit PIN"}</p>
+                            <p className="text-xs text-slate-500">
+                                {showPin ? '1234' : (lang === Language.FR ? 'Afficher votre code à 4 chiffres' : "View your card's 4-digit PIN")}
+                            </p>
                         </div>
                     </div>
                 </div>

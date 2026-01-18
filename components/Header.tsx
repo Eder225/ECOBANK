@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Bell, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 import { User, Language, Notification } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -12,7 +12,7 @@ interface HeaderProps {
   markNotificationsAsRead: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, lang, setLang, toggleSidebar, notifications, markNotificationsAsRead }) => {
+const Header: React.FC<HeaderProps> = ({ user, lang, setLang, notifications, markNotificationsAsRead }) => {
   const t = TRANSLATIONS[lang];
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -47,10 +47,8 @@ const Header: React.FC<HeaderProps> = ({ user, lang, setLang, toggleSidebar, not
 
   return (
     <header className="sticky top-0 z-30 bg-[#004b6b] shadow-md border-b border-[#00364d] px-4 md:px-6 py-4 flex items-center justify-between transition-colors">
+      {/* Mobile Logo Only - Menu button removed */}
       <div className="flex items-center gap-4 md:hidden">
-        <button onClick={toggleSidebar} className="p-2 text-white hover:bg-[#00364d] rounded-lg transition-colors">
-          <Menu size={24} />
-        </button>
         <img 
             src="https://i.imgur.com/eAwClBc.png" 
             alt="Ecobank" 
@@ -119,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ user, lang, setLang, toggleSidebar, not
         <img
         src={user.avatar}
         alt={user.name}
-        className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-white/20 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+        className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-white/20 shadow-sm transition-transform bg-slate-200"
         />
       </div>
     </header>

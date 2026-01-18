@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { User as UserType, Account, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { Mail, Phone, MapPin, Shield, Copy } from 'lucide-react';
+import { Mail, Phone, MapPin, Copy, Camera } from 'lucide-react';
 
 interface ProfileProps {
   user: UserType;
   accounts: Account[];
   lang: Language;
+  onUpdateAvatar: (url: string) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, accounts, lang }) => {
+const Profile: React.FC<ProfileProps> = ({ user, accounts, lang, onUpdateAvatar }) => {
   const t = TRANSLATIONS[lang];
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          onUpdateAvatar(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -18,8 +37,29 @@ const Profile: React.FC<ProfileProps> = ({ user, accounts, lang }) => {
         <div className="h-32 bg-gradient-to-r from-teal-600 to-slate-800"></div>
         <div className="px-8 pb-8">
             <div className="relative flex justify-between items-end -mt-12 mb-6">
-                <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover" />
-                <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">Edit Profile</button>
+                <div className="relative group cursor-pointer" onClick={triggerFileInput}>
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      className="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover bg-slate-200" 
+                    />
+                    <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="text-white" size={24} />
+                    </div>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        className="hidden" 
+                        accept="image/*"
+                    />
+                </div>
+                <button 
+                  onClick={triggerFileInput}
+                  className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                >
+                  {lang === Language.FR ? 'Modifier Photo' : 'Edit Photo'}
+                </button>
             </div>
             <div>
                 <h2 className="text-2xl font-bold text-slate-900">{user.name}</h2>

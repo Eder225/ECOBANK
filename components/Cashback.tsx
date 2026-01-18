@@ -1,14 +1,16 @@
-import React from 'react';
-import { DollarSign, Clock, ExternalLink, History } from 'lucide-react';
+import React, { useState } from 'react';
+import { DollarSign, Clock, ExternalLink, History, Check } from 'lucide-react';
 import { Language } from '../types';
 import { TRANSLATIONS, CASHBACK_DATA } from '../constants';
 
 interface CashbackProps {
   lang: Language;
+  addNotification: (msg: string) => void;
 }
 
-const Cashback: React.FC<CashbackProps> = ({ lang }) => {
+const Cashback: React.FC<CashbackProps> = ({ lang, addNotification }) => {
   const t = TRANSLATIONS[lang];
+  const [activatedOffers, setActivatedOffers] = useState<string[]>([]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(lang === Language.FR ? 'fr-FR' : 'en-US', {
@@ -17,6 +19,15 @@ const Cashback: React.FC<CashbackProps> = ({ lang }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const toggleActivation = (id: string, name: string) => {
+    if (activatedOffers.includes(id)) return;
+    
+    setActivatedOffers([...activatedOffers, id]);
+    addNotification(lang === Language.FR 
+        ? `Offre ${name} activée avec succès !` 
+        : `Offer ${name} activated successfully!`);
   };
 
   // Values reset to 0 for new account
@@ -76,7 +87,9 @@ const Cashback: React.FC<CashbackProps> = ({ lang }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CASHBACK_DATA.map((offer) => (
+            {CASHBACK_DATA.map((offer) => {
+                const isActivated = activatedOffers.includes(offer.id);
+                return (
                 <div key={offer.id} className="bg-white rounded-2xl p-5 border border-slate-100 hover:shadow-md transition-shadow group flex flex-col h-full">
                     <div className="flex justify-between items-start mb-4">
                         <div className="w-14 h-14 bg-slate-50 rounded-xl p-2 flex items-center justify-center border border-slate-100">
@@ -91,15 +104,27 @@ const Cashback: React.FC<CashbackProps> = ({ lang }) => {
                     <p className="text-slate-400 text-xs mb-4 uppercase tracking-wide font-semibold">{offer.category}</p>
                     
                     <div className="mt-auto pt-4 border-t border-slate-50 flex gap-2">
-                        <button className="flex-1 bg-slate-900 text-white py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors">
-                            {t.activate}
+                        <button 
+                            onClick={() => toggleActivation(offer.id, offer.name)}
+                            disabled={isActivated}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                                isActivated 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-slate-900 text-white hover:bg-slate-800'
+                            }`}
+                        >
+                            {isActivated ? (
+                                <><Check size={16} /> {lang === Language.FR ? 'Activé' : 'Activated'}</>
+                            ) : (
+                                t.activate
+                            )}
                         </button>
                         <button className="p-2 border border-slate-200 rounded-lg text-slate-400 hover:text-teal-600 hover:border-teal-200 transition-colors">
                             <ExternalLink size={18} />
                         </button>
                     </div>
                 </div>
-            ))}
+            )})}
         </div>
       </div>
 
