@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle2, ChevronRight, ChevronLeft, Building, User, CreditCard, FileText, Wallet, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle2, ChevronRight, ChevronLeft, Building, User, CreditCard, FileText, Wallet, Check, X, AlertCircle } from 'lucide-react';
 import { Account, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -23,8 +23,9 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
   const t = TRANSLATIONS[lang];
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
-  // Defaulting to a date in 2026 for the transfer summary
   const [timestamp] = useState(new Date('2026-01-12T14:30:00'));
+  const [fees, setFees] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   
   const [data, setData] = useState<TransferData>({
     accountId: accounts.length > 0 ? accounts[0].id : '',
@@ -36,23 +37,57 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
     reason: ''
   });
 
+  // Calculate fees when step changes to summary or bank name changes
+  useEffect(() => {
+    if (data.bankName) {
+        const isInternal = data.bankName.toLowerCase().includes('ecobank');
+        setFees(isInternal ? 0 : 500);
+    }
+  }, [data.bankName]);
+
   const handleNext = () => {
+    setError(null);
+    
+    // Validate Step 3 (Amount limit)
+    if (step === 3) {
+        const amount = parseFloat(data.amount);
+        const limit = 2000000;
+        
+        if (amount > limit) {
+            setError(lang === Language.FR 
+                ? `Le montant dépasse la limite journalière de ${formatCurrency(limit)}.` 
+                : `Amount exceeds daily limit of ${formatCurrency(limit)}.`);
+            return;
+        }
+
+        const selectedAccount = getSelectedAccount();
+        if (selectedAccount && amount + fees > selectedAccount.balance) {
+             setError(lang === Language.FR 
+                ? "Solde insuffisant pour couvrir le virement et les frais." 
+                : "Insufficient balance to cover transfer and fees.");
+            return;
+        }
+    }
+
     if (step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
+    setError(null);
     if (step > 1) setStep(step - 1);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(true);
-    addNotification("Votre virement n'a pas été effectué, veuillez contacter votre banque");
+    addNotification(lang === Language.FR ? "Virement effectué avec succès" : "Transfer successful");
   };
 
   const handleReset = () => {
     setSuccess(false);
     setStep(1);
+    setFees(0);
+    setError(null);
     setData({
       accountId: accounts.length > 0 ? accounts[0].id : '',
       beneficiaryName: '',
@@ -66,6 +101,7 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
 
   const updateData = (key: keyof TransferData, value: string) => {
     setData(prev => ({ ...prev, [key]: value }));
+    if (error) setError(null);
   };
 
   const getSelectedAccount = () => accounts.find(a => a.id === data.accountId);
@@ -226,12 +262,12 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
                         </div>
                         <div className="flex justify-between items-center text-slate-600">
                             <span className="font-medium">{t.fees}</span>
-                            <span className="font-bold">{formatCurrency(0)}</span>
+                            <span className="font-bold">{formatCurrency(fees)}</span>
                         </div>
                         
                         <div className="pt-4 flex justify-between items-center">
                             <span className="text-lg font-bold text-teal-700">{t.totalDebited}</span>
-                            <span className="text-3xl font-bold text-teal-700 tracking-tight">{formatCurrency(parseFloat(data.amount))}</span>
+                            <span className="text-3xl font-bold text-teal-700 tracking-tight">{formatCurrency(parseFloat(data.amount) + fees)}</span>
                         </div>
                     </div>
                 </div>
@@ -334,6 +370,9 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
                                     placeholder="Ecobank Paris"
                                 />
                             </div>
+                            <p className="text-xs text-slate-400 ml-1">
+                                {lang === Language.FR ? "Frais de 500 XOF pour les banques autres qu'Ecobank." : "500 XOF fee for non-Ecobank transfers."}
+                            </p>
                         </div>
                     </div>
                 )}
@@ -356,6 +395,14 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
                                 </div>
                             </div>
                         </div>
+                        
+                        {/* Error Message */}
+                        {error && (
+                            <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm flex items-center gap-2 border border-red-100">
+                                <AlertCircle size={18} />
+                                {error}
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <div className="space-y-2">
@@ -370,6 +417,10 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
                                         placeholder="0"
                                         autoFocus
                                     />
+                                </div>
+                                <div className="flex justify-between text-xs text-slate-500 px-1">
+                                    <span>{t.fees}: {formatCurrency(fees)}</span>
+                                    <span>Limit: {formatCurrency(2000000)}</span>
                                 </div>
                             </div>
 
@@ -414,7 +465,7 @@ const Transfers: React.FC<TransfersProps> = ({ accounts, lang, addNotification }
                 ) : (
                     <button 
                         onClick={handleSubmit}
-                        disabled={!canProceed()}
+                        disabled={!canProceed() || !!error}
                         className="flex-1 py-3 px-4 md:px-6 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-teal-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                     >
                         {t.confirmTransfer}

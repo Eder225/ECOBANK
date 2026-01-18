@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, AlertCircle } from 'lucide-react';
+import { ChevronDown, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -15,6 +15,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
   const [password, setPassword] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   // Hardcoded credentials
   const VALID_ID = '19384726';
@@ -23,12 +25,23 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(false);
+    setIsLoading(true);
 
-    if (userId === VALID_ID && password === VALID_PASS) {
-      onLogin();
-    } else {
-      setError(true);
-    }
+    // Simulate API network delay
+    setTimeout(() => {
+        if (userId === VALID_ID && password === VALID_PASS) {
+          onLogin();
+        } else {
+          setError(true);
+          setIsLoading(false);
+        }
+    }, 2000);
+  };
+
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOtpSent(true);
+    setTimeout(() => setOtpSent(false), 5000); // Hide message after 5 seconds
   };
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -47,8 +60,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
         />
         <div className="relative">
             <button 
-                onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex items-center gap-2 text-sm cursor-pointer hover:text-teal-200 transition-colors"
+                onClick={() => !isLoading && setShowLangMenu(!showLangMenu)}
+                disabled={isLoading}
+                className={`flex items-center gap-2 text-sm transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-teal-200'}`}
             >
                 <span>{t.currentLangName}</span>
                 <ChevronDown size={14} />
@@ -88,8 +102,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
                             type="text" 
                             value={userId}
                             onChange={(e) => handleInputChange(setUserId, e.target.value)}
-                            className={`w-full border-b py-2 text-lg text-slate-800 outline-none transition-colors rounded-none bg-transparent ${error ? 'border-red-500' : 'border-slate-300 focus:border-[#008ac9]'}`}
+                            className={`w-full border-b py-2 text-lg text-slate-800 outline-none transition-colors rounded-none bg-transparent ${error ? 'border-red-500' : 'border-slate-300 focus:border-[#008ac9]'} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             autoFocus
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -99,7 +114,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
                             type="password" 
                             value={password}
                             onChange={(e) => handleInputChange(setPassword, e.target.value)}
-                            className={`w-full border-b py-2 text-lg text-slate-800 outline-none transition-colors rounded-none bg-transparent ${error ? 'border-red-500' : 'border-slate-300 focus:border-[#008ac9]'}`}
+                            className={`w-full border-b py-2 text-lg text-slate-800 outline-none transition-colors rounded-none bg-transparent ${error ? 'border-red-500' : 'border-slate-300 focus:border-[#008ac9]'} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isLoading}
                         />
                     </div>
 
@@ -111,16 +127,41 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
                             </span>
                         </div>
                     )}
+                    
+                    {otpSent && (
+                        <div className="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg animate-in fade-in slide-in-from-top-2 border border-green-100">
+                            <CheckCircle2 size={18} />
+                            <span className="text-sm font-medium">
+                                {lang === Language.FR 
+                                    ? 'Un code OTP a été envoyé à votre numéro pour réinitialiser.' 
+                                    : 'An OTP has been sent to your number for reset.'}
+                            </span>
+                        </div>
+                    )}
 
                     <div className="flex justify-end pt-2">
-                        <a href="#" className="text-[#00aeb5] text-sm hover:underline">{t.forgotPassword}</a>
+                        <button 
+                            type="button"
+                            onClick={handleForgotPassword}
+                            className={`text-[#00aeb5] text-sm hover:underline ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+                        >
+                            {t.forgotPassword}
+                        </button>
                     </div>
 
                     <button 
                         type="submit"
-                        className="w-full bg-[#007ba8] hover:bg-[#006a91] text-white font-medium py-4 text-sm tracking-widest uppercase transition-colors shadow-sm"
+                        disabled={isLoading}
+                        className={`w-full bg-[#007ba8] hover:bg-[#006a91] text-white font-medium py-4 text-sm tracking-widest uppercase transition-colors shadow-sm flex items-center justify-center gap-3 ${isLoading ? 'opacity-80 cursor-not-allowed' : ''}`}
                     >
-                        {t.continue}
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="animate-spin" size={20} />
+                                <span>{lang === Language.FR ? 'Connexion...' : 'Connecting...'}</span>
+                            </>
+                        ) : (
+                            t.continue
+                        )}
                     </button>
                 </form>
             </div>

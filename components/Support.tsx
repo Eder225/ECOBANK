@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MessageCircle, ChevronDown, ChevronUp, Search, LifeBuoy } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, LifeBuoy } from 'lucide-react';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -19,51 +19,23 @@ const Support: React.FC<SupportProps> = ({ lang }) => {
     { question: t.faq1, answer: t.faq1Desc },
     { question: t.faq2, answer: t.faq2Desc },
     { question: t.faq3, answer: t.faq3Desc },
+    { question: t.faq4, answer: t.faq4Desc },
+    { question: t.faq5, answer: t.faq5Desc },
   ];
 
   return (
     <div className="space-y-8 pb-10">
       <div className="text-center py-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-3">{t.supportCenter}</h2>
-        <p className="text-slate-500">{t.howCanWeHelp}</p>
+        <p className="text-slate-500 max-w-xl mx-auto">{t.howCanWeHelp}</p>
         
-        <div className="mt-6 max-w-lg mx-auto relative">
+        <div className="mt-8 max-w-lg mx-auto relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input 
                 type="text" 
                 placeholder={t.search} 
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 shadow-sm"
+                className="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 shadow-sm transition-shadow hover:shadow-md"
             />
-        </div>
-      </div>
-
-      {/* Contact Options */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow text-center group cursor-pointer">
-            <div className="w-14 h-14 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                <Phone size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">{t.callUs}</h3>
-            <p className="text-slate-500 text-sm mb-4">+228 22 21 31 68</p>
-            <span className="text-teal-600 text-sm font-semibold">{t.callUs}</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow text-center group cursor-pointer">
-            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <Mail size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">{t.emailUs}</h3>
-            <p className="text-slate-500 text-sm mb-4">support@ecobank.com</p>
-            <span className="text-blue-600 text-sm font-semibold">{t.emailUs}</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow text-center group cursor-pointer">
-            <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <MessageCircle size={24} />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Live Chat</h3>
-            <p className="text-slate-500 text-sm mb-4">Available 24/7</p>
-            <span className="text-purple-600 text-sm font-semibold">Start Chat</span>
         </div>
       </div>
 
@@ -75,24 +47,36 @@ const Support: React.FC<SupportProps> = ({ lang }) => {
         </h3>
         <div className="space-y-4">
             {faqs.map((faq, index) => (
-                <div key={index} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div key={index} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group">
                     <button 
                         onClick={() => toggleFaq(index)}
                         className="w-full flex items-center justify-between p-5 text-left font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
                     >
-                        <span>{faq.question}</span>
-                        {openFaq === index ? <ChevronUp size={20} className="text-teal-600" /> : <ChevronDown size={20} className="text-slate-400" />}
+                        <span className="pr-4">{faq.question}</span>
+                        <div className={`p-1 rounded-full bg-slate-100 text-slate-500 transition-colors ${openFaq === index ? 'bg-teal-100 text-teal-700' : ''}`}>
+                             {openFaq === index ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
                     </button>
-                    {openFaq === index && (
-                        <div className="px-5 pb-5 pt-0 text-slate-500 text-sm leading-relaxed border-t border-slate-50">
+                    <div 
+                        className={`transition-all duration-300 ease-in-out overflow-hidden ${openFaq === index ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+                    >
+                        <div className="px-5 pb-6 pt-0 text-slate-600 text-sm leading-7 border-t border-slate-50">
                             <div className="pt-4">
                                 {faq.answer}
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             ))}
         </div>
+      </div>
+      
+      {/* Helper text since we removed contact buttons */}
+      <div className="text-center mt-12 text-slate-400 text-sm">
+        <p>{lang === Language.FR ? "Vous ne trouvez pas ce que vous cherchez ?" : "Can't find what you're looking for?"}</p>
+        <p className="mt-1">
+             {lang === Language.FR ? "Rendez-vous dans votre agence Ecobank la plus proche." : "Please visit your nearest Ecobank branch."}
+        </p>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { TrendingUp, TrendingDown, Wallet, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, PieChart as PieChartIcon } from 'lucide-react';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -116,7 +116,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
         {/* Categories Pie Chart - Empty State for now */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <PieChart size={32} className="text-slate-300"/>
+                <PieChartIcon size={32} className="text-slate-300"/>
             </div>
             <h3 className="font-bold text-xl text-slate-900 mb-2">{t.spendingCategories}</h3>
             <p className="text-slate-400 text-sm">{t.noTransactionsDesc}</p>

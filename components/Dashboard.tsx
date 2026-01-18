@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUpRight, ArrowDownLeft, Wallet, ChevronRight, MoreHorizontal, PlusCircle, CreditCard, Target, Eye, EyeOff } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Wallet, ChevronRight, MoreHorizontal, PlusCircle, CreditCard, Target, Eye, EyeOff, Snowflake } from 'lucide-react';
 import { Account, Transaction, Language, User } from '../types';
 import { TRANSLATIONS, CARDS } from '../constants';
 
@@ -24,8 +24,10 @@ const chartData = [
 
 const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lang }) => {
   const t = TRANSLATIONS[lang];
-  const userCard = CARDS[0];
+  // Manage local state for the dashboard card to allow interaction
+  const [userCard, setUserCard] = useState(CARDS[0]);
   const [showCardDetails, setShowCardDetails] = useState(false);
+  const [showCardMenu, setShowCardMenu] = useState(false);
   
   // Remove any spaces from the source number to ensure slicing works correctly
   const cleanNumber = userCard.number.replace(/\s/g, '');
@@ -45,6 +47,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
           month: 'short',
           year: 'numeric'
       });
+  };
+
+  const toggleFreeze = () => {
+    setUserCard(prev => ({
+        ...prev,
+        status: prev.status === 'active' ? 'frozen' : 'active'
+    }));
+    setShowCardMenu(false);
   };
 
   return (
@@ -163,19 +173,55 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
 
         {/* Card Visualization (1/2 width) */}
         <div className="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 relative">
                 <h3 className="font-bold text-lg md:text-xl text-slate-900">{t.cards}</h3>
-                <MoreHorizontal className="text-slate-400 cursor-pointer" />
+                
+                {/* Menu Dropdown Trigger */}
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowCardMenu(!showCardMenu)}
+                        className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 transition-colors"
+                    >
+                        <MoreHorizontal />
+                    </button>
+                    
+                    {/* Menu Dropdown */}
+                    {showCardMenu && (
+                        <>
+                            <div className="fixed inset-0 z-10" onClick={() => setShowCardMenu(false)}></div>
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <button 
+                                    onClick={toggleFreeze}
+                                    className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700 font-medium"
+                                >
+                                    <Snowflake size={16} className={userCard.status === 'active' ? "text-blue-500" : "text-slate-400"} />
+                                    {userCard.status === 'active' ? t.freeze : (lang === Language.FR ? 'Débloquer' : 'Unfreeze')}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
             
             {/* Credit Card Component - Updated Logic & Sizes */}
-            <div className="relative w-full aspect-[1.586/1] rounded-2xl p-7 md:p-9 text-white flex flex-col justify-between shadow-2xl shadow-teal-900/20 overflow-hidden transition-transform hover:scale-[1.01] duration-300 group" 
-                 style={{ backgroundColor: '#00A88F' }}>
+            <div className={`relative w-full aspect-[1.586/1] rounded-2xl p-7 md:p-9 text-white flex flex-col justify-between shadow-2xl overflow-hidden transition-all duration-300 group ${
+                userCard.status === 'frozen' ? 'bg-slate-500 grayscale shadow-none' : 'shadow-teal-900/20 hover:scale-[1.01]'
+            }`} 
+                 style={{ backgroundColor: userCard.status === 'frozen' ? undefined : '#00A88F' }}>
                 
                 {/* Background Texture/Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10 pointer-events-none mix-blend-overlay"></div>
                 <div className="absolute -top-[50%] -right-[50%] w-[100%] h-[100%] bg-white/5 blur-[50px] rounded-full pointer-events-none"></div>
                 
+                {/* Frozen Overlay */}
+                {userCard.status === 'frozen' && (
+                    <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] z-0 pointer-events-none flex items-center justify-center">
+                        <div className="bg-black/30 p-3 rounded-full backdrop-blur-md">
+                            <Snowflake size={32} className="text-white opacity-80" />
+                        </div>
+                    </div>
+                )}
+
                 {/* Top Row: Chip & Visa & Eye Toggle */}
                 <div className="flex justify-between items-start z-10">
                     {/* Chip - Larger */}

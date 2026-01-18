@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Wallet as WalletIcon, Plus, ArrowUpRight, TrendingUp, CreditCard, PieChart } from 'lucide-react';
+import { Wallet as WalletIcon, Plus, ArrowUpRight, TrendingUp, CreditCard, PieChart, Download, FileText, MoreHorizontal } from 'lucide-react';
 import { Account, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -21,6 +21,8 @@ const mockWalletData = [
 
 const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
   const t = TRANSLATIONS[lang];
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
   const totalBalance = accounts.reduce((acc, curr) => acc + curr.balance, 0);
 
   const formatCurrency = (amount: number) => {
@@ -32,8 +34,20 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
     }).format(amount);
   };
 
+  const handleDownloadStatement = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    alert(lang === Language.FR ? "Le téléchargement du relevé a commencé..." : "Statement download started...");
+  };
+
+  const handleDownloadIBAN = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenuId(null);
+    alert(lang === Language.FR ? "Le téléchargement du RIB a commencé..." : "IBAN download started...");
+  };
+
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-6 pb-10" onClick={() => setActiveMenuId(null)}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-bold text-slate-900">{t.wallet}</h2>
         <button className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2">
@@ -154,12 +168,39 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang }) => {
 
             <div className="space-y-4">
                 {accounts.map(acc => (
-                    <div key={acc.id} className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100 group cursor-pointer">
+                    <div key={acc.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 relative group">
                         <div className="flex justify-between items-start mb-2">
                             <div className="p-2 bg-white rounded-lg text-slate-900 shadow-sm">
                                 <CreditCard size={18} />
                             </div>
-                            <ArrowUpRight size={18} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+                            
+                            <div className="relative">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === acc.id ? null : acc.id); }}
+                                    className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                                >
+                                    <MoreHorizontal size={18} className="text-slate-400" />
+                                </button>
+                                
+                                {activeMenuId === acc.id && (
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                        <button 
+                                            onClick={handleDownloadStatement}
+                                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700"
+                                        >
+                                            <Download size={16} />
+                                            {lang === Language.FR ? "Télécharger relevé" : "Download Statement"}
+                                        </button>
+                                        <button 
+                                            onClick={handleDownloadIBAN}
+                                            className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700"
+                                        >
+                                            <FileText size={16} />
+                                            {lang === Language.FR ? "Télécharger RIB" : "Download IBAN"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div>
                             <p className="text-sm text-slate-500 font-medium mb-1">{acc.type}</p>
