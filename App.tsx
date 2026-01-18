@@ -11,6 +11,7 @@ import Statistics from './components/Statistics';
 import Cashback from './components/Cashback';
 import Support from './components/Support';
 import Settings from './components/Settings';
+import BottomNav from './components/BottomNav';
 import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS, CARDS } from './constants';
 import { Tab, Language, Notification, Transaction } from './types';
 
@@ -81,20 +82,12 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Mobile Sidebar Wrapper for Toggle */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:block ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans overflow-x-hidden">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block w-64 shrink-0 h-screen sticky top-0">
         <Sidebar 
             activeTab={activeTab} 
-            setActiveTab={(t) => { setActiveTab(t); setSidebarOpen(false); }} 
+            setActiveTab={setActiveTab} 
             lang={lang} 
             onLogout={handleLogout}
         />
@@ -110,11 +103,17 @@ const App: React.FC = () => {
             markNotificationsAsRead={markNotificationsAsRead}
         />
         
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
              {renderContent()}
           </div>
         </main>
+
+        <BottomNav 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          lang={lang} 
+        />
       </div>
     </div>
   );
