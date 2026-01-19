@@ -38,8 +38,8 @@ export const CARDS: Card[] = [
     {
         id: 'c1',
         type: 'Visa',
-        number: '4970 1102 3044 5509',
-        expiry: '12/28',
+        number: '4305 0122 2240 4286',
+        expiry: '03/28',
         holder: 'RHODIN Sofia',
         status: 'active',
         balance: 195000000,
