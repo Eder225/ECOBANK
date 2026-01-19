@@ -1,19 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy, Eye, EyeOff, Snowflake, Plus, ShieldCheck } from 'lucide-react';
 import { Card, Language } from '../types';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS, CARDS } from '../constants';
 
 interface CardsProps {
-  cards: Card[];
+  // Remove "cards" from props since we load it from storage/constants inside the component
   lang: Language;
   addNotification: (msg: string) => void;
 }
 
-const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotification }) => {
+const Cards: React.FC<CardsProps> = ({ lang, addNotification }) => {
   const t = TRANSLATIONS[lang];
-  const [cards, setCards] = useState<Card[]>(initialCards);
+  
+  // Initialize state from localStorage or default constants
+  const [cards, setCards] = useState<Card[]>(() => {
+      const saved = localStorage.getItem('ecobank_cards');
+      return saved ? JSON.parse(saved) : CARDS;
+  });
+
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
   const [showPin, setShowPin] = useState(false);
+
+  // Save changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('ecobank_cards', JSON.stringify(cards));
+  }, [cards]);
 
   const toggleVisibility = (id: string) => {
     setVisibleCards(prev => ({
@@ -64,7 +75,7 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotificatio
             className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
         >
             <Plus size={16} />
-            <span>{lang === Language.FR ? 'Nouvelle Carte' : 'Add New Card'}</span>
+            <span>{t.addNewCard}</span>
         </button>
       </div>
 
@@ -96,11 +107,11 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotificatio
 
             <div className="flex justify-between items-end z-10 mt-auto">
               <div>
-                <p className="text-[9px] md:text-[10px] opacity-70 uppercase mb-0.5">Card Holder</p>
+                <p className="text-[9px] md:text-[10px] opacity-70 uppercase mb-0.5">{t.cardHolder}</p>
                 <p className="font-medium tracking-wide text-xs md:text-sm truncate max-w-[120px] md:max-w-[180px]">{card.holder}</p>
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] opacity-70 uppercase text-right mb-0.5">Expires</p>
+                <p className="text-[9px] md:text-[10px] opacity-70 uppercase text-right mb-0.5">{t.expires}</p>
                 <p className="font-medium tracking-wide text-xs md:text-sm">{card.expiry}</p>
               </div>
             </div>
@@ -115,7 +126,7 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotificatio
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-4">{lang === Language.FR ? 'Paramètres de la carte' : 'Card Settings'}</h3>
+            <h3 className="font-bold text-slate-800 mb-4">{t.cardSettings}</h3>
             <div className="space-y-3">
                 {/* Freeze Toggle */}
                 <div 
@@ -128,7 +139,7 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotificatio
                         </div>
                         <div>
                             <p className="font-medium text-slate-800">{t.freeze}</p>
-                            <p className="text-xs text-slate-500">{lang === Language.FR ? 'Désactiver temporairement votre carte' : 'Temporarily disable your card'}</p>
+                            <p className="text-xs text-slate-500">{t.tempDisable}</p>
                         </div>
                     </div>
                     {/* Toggle Switch */}
@@ -146,9 +157,9 @@ const Cards: React.FC<CardsProps> = ({ cards: initialCards, lang, addNotificatio
                             {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
                         </div>
                         <div>
-                            <p className="font-medium text-slate-800">{lang === Language.FR ? 'Voir le code PIN' : 'Show PIN'}</p>
+                            <p className="font-medium text-slate-800">{showPin ? t.hidePin : t.showPin}</p>
                             <p className="text-xs text-slate-500">
-                                {showPin ? '1234' : (lang === Language.FR ? 'Afficher votre code à 4 chiffres' : "View your card's 4-digit PIN")}
+                                {showPin ? '1234' : t.pinDesc}
                             </p>
                         </div>
                     </div>

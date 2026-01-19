@@ -69,7 +69,9 @@ const Header: React.FC<HeaderProps> = ({ user, lang, setLang, notifications, mar
             >
                 <Bell size={24} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-[#004b6b] rounded-full"></span>
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] bg-red-500 text-white text-[11px] font-bold flex items-center justify-center rounded-full border-2 border-[#004b6b] px-1 animate-in zoom-in duration-300">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
                 )}
             </button>
 
@@ -77,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ user, lang, setLang, notifications, mar
             {showNotifications && (
                 <div className="absolute right-0 top-full mt-2 w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 text-slate-900">
                     <div className="p-4 border-b border-slate-50 flex justify-between items-center">
-                        <h3 className="font-bold text-slate-900">Notifications</h3>
+                        <h3 className="font-bold text-slate-900">{t.notificationsTitle}</h3>
                         <button onClick={() => setShowNotifications(false)} className="text-slate-400 hover:text-slate-600">
                             <X size={16} />
                         </button>
@@ -85,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({ user, lang, setLang, notifications, mar
                     <div className="max-h-[400px] overflow-y-auto">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center text-slate-400 text-sm">
-                                {lang === Language.FR ? 'Aucune notification' : 'No notifications'}
+                                {t.noNotifications}
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-50">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './components/Login';
@@ -14,15 +14,76 @@ import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
 import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS, CARDS } from './constants';
 import { Tab, Language, Notification, Transaction, User } from './types';
+import { Bell, CheckCircle2, X } from 'lucide-react';
+
+interface Toast {
+  id: number;
+  message: string;
+}
+
+// Helper to load from localStorage or fallback to default
+const loadState = <T,>(key: string, defaultValue: T): T => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultValue;
+  } catch (e) {
+    return defaultValue;
+  }
+};
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User>(CURRENT_USER);
+  // --- Persistent States ---
+  
+  // 1. Auth Status
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => loadState('ecobank_isLoggedIn', false));
+
+  // 2. User Data (Avatar, Name changes)
+  const [currentUser, setCurrentUser] = useState<User>(() => loadState('ecobank_user', CURRENT_USER));
+
+  // 3. Language Preference
+  const [lang, setLang] = useState<Language>(() => loadState('ecobank_lang', Language.FR));
+
+  // 4. Notifications
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    const saved = localStorage.getItem('ecobank_notifications');
+    if (saved) {
+        // Need to convert string dates back to Date objects
+        const parsed = JSON.parse(saved);
+        return parsed.map((n: any) => ({ ...n, date: new Date(n.date) }));
+    }
+    return [];
+  });
+
+  // 5. Transactions History
+  const [transactions, setTransactions] = useState<Transaction[]>(() => loadState('ecobank_transactions', RECENT_TRANSACTIONS));
+
+  // --- Ephemeral States (Reset on reload) ---
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DASHBOARD);
-  const [lang, setLang] = useState<Language>(Language.FR);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>(RECENT_TRANSACTIONS);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // --- Effects to Save Data on Change ---
+
+  useEffect(() => {
+    localStorage.setItem('ecobank_isLoggedIn', JSON.stringify(isLoggedIn));
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    localStorage.setItem('ecobank_user', JSON.stringify(currentUser));
+  }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem('ecobank_lang', JSON.stringify(lang));
+  }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem('ecobank_notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('ecobank_transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -33,6 +94,7 @@ const App: React.FC = () => {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setActiveTab(Tab.DASHBOARD);
+    // We do NOT clear localStorage here so data persists for next login
   };
 
   const updateUserAvatar = (newAvatarUrl: string) => {
@@ -40,6 +102,7 @@ const App: React.FC = () => {
   };
 
   const addNotification = (message: string) => {
+    // 1. Add to persistent notifications list (Bell icon)
     const newNotif: Notification = {
       id: Date.now().toString(),
       message,
@@ -47,6 +110,19 @@ const App: React.FC = () => {
       read: false
     };
     setNotifications(prev => [newNotif, ...prev]);
+
+    // 2. Trigger a temporary Toast Popup
+    const toastId = Date.now();
+    setToasts(prev => [...prev, { id: toastId, message }]);
+
+    // Auto remove toast after 4 seconds
+    setTimeout(() => {
+        setToasts(prev => prev.filter(t => t.id !== toastId));
+    }, 4000);
+  };
+
+  const removeToast = (id: number) => {
+      setToasts(prev => prev.filter(t => t.id !== id));
   };
 
   const addTransaction = (tx: Transaction) => {
@@ -78,7 +154,6 @@ const App: React.FC = () => {
         return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} addTransaction={addTransaction} />;
       case Tab.CARDS:
         return <Cards 
-                  cards={CARDS} 
                   lang={lang} 
                   addNotification={addNotification}
                />;
@@ -138,6 +213,27 @@ const App: React.FC = () => {
             markNotificationsAsRead={markNotificationsAsRead}
         />
         
+        {/* Toast Container */}
+        <div className="fixed top-20 right-4 z-[60] flex flex-col gap-3 pointer-events-none max-w-[90vw] md:max-w-md w-full">
+            {toasts.map(toast => (
+                <div 
+                    key={toast.id} 
+                    className="bg-slate-800 text-white p-4 rounded-xl shadow-2xl flex items-start gap-3 pointer-events-auto animate-in slide-in-from-right-10 fade-in duration-300 border-l-4 border-teal-500"
+                >
+                    <div className="mt-0.5 text-teal-400 shrink-0">
+                        <CheckCircle2 size={18} />
+                    </div>
+                    <p className="text-sm font-medium leading-relaxed flex-1">{toast.message}</p>
+                    <button 
+                        onClick={() => removeToast(toast.id)}
+                        className="text-slate-400 hover:text-white transition-colors shrink-0"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            ))}
+        </div>
+
         {/* Main Content Area - Scrollable */}
         <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto scroll-smooth">
           <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -55,7 +55,7 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotificatio
                 <div className="p-5 border-b border-slate-50 flex justify-between items-center">
                     <div>
                         <p className="font-semibold text-slate-800">Language</p>
-                        <p className="text-xs text-slate-500">App display language</p>
+                        <p className="text-xs text-slate-500">{t.appLanguage}</p>
                     </div>
                     <div className="flex gap-2">
                         <button 
@@ -85,14 +85,14 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotificatio
                 <div className="p-5 border-b border-slate-50 flex justify-between items-center">
                     <div>
                         <p className="font-semibold text-slate-800">{t.emailNotif}</p>
-                        <p className="text-xs text-slate-500">Receive weekly summaries</p>
+                        <p className="text-xs text-slate-500">{t.receiveSummary}</p>
                     </div>
                     <Toggle active={emailNotif} onClick={() => setEmailNotif(!emailNotif)} />
                 </div>
                 <div className="p-5 flex justify-between items-center">
                     <div>
                         <p className="font-semibold text-slate-800">{t.pushNotif}</p>
-                        <p className="text-xs text-slate-500">Transaction alerts</p>
+                        <p className="text-xs text-slate-500">{t.transactionAlerts}</p>
                     </div>
                     <Toggle active={pushNotif} onClick={() => setPushNotif(!pushNotif)} />
                 </div>
@@ -115,14 +115,14 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotificatio
                             </div>
                             <div>
                                 <p className="font-semibold text-slate-800">{t.changePassword}</p>
-                                <p className="text-xs text-slate-500">Last changed 3 months ago</p>
+                                <p className="text-xs text-slate-500">{t.lastChanged}</p>
                             </div>
                         </div>
                         <button 
                             onClick={() => setChangePasswordMode(true)}
                             className="text-sm font-semibold text-slate-600 border border-slate-200 px-4 py-2 rounded-lg hover:bg-white transition-colors"
                         >
-                            Update
+                            {t.update}
                         </button>
                     </div>
                 ) : (
@@ -134,23 +134,23 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotificatio
                             <p className="font-semibold text-slate-800">{t.changePassword}</p>
                         </div>
                         <div className="space-y-3">
-                            <input type="password" placeholder="Current Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
-                            <input type="password" placeholder="New Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
-                            <input type="password" placeholder="Confirm New Password" className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                            <input type="password" placeholder={t.currentPassword} className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                            <input type="password" placeholder={t.newPassword} className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
+                            <input type="password" placeholder={t.confirmPassword} className="w-full p-3 rounded-lg border border-slate-200 focus:outline-none focus:border-teal-500" />
                         </div>
                         <div className="flex justify-end gap-3 mt-4">
                             <button 
                                 onClick={() => setChangePasswordMode(false)}
                                 className="text-sm font-medium text-slate-500 hover:text-slate-700 px-3 py-2"
                             >
-                                Cancel
+                                {t.cancel}
                             </button>
                             <button 
                                 onClick={handleSave}
                                 className="text-sm font-medium bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center gap-2"
                             >
                                 <Check size={16} />
-                                Save Password
+                                {t.savePassword}
                             </button>
                         </div>
                      </div>
@@ -164,7 +164,7 @@ const Settings: React.FC<SettingsProps> = ({ user, lang, setLang, addNotificatio
                         </div>
                         <div>
                             <p className="font-semibold text-slate-800">{t.enable2FA}</p>
-                            <p className="text-xs text-slate-500">Secure your account</p>
+                            <p className="text-xs text-slate-500">{t.secureAccount}</p>
                         </div>
                     </div>
                     <Toggle active={twoFactor} onClick={() => setTwoFactor(!twoFactor)} />

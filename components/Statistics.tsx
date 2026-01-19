@@ -20,6 +20,11 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
     }).format(amount);
   };
 
+  const translateMonth = (monthKey: string) => {
+      const key = monthKey.toLowerCase();
+      return t[key] || monthKey;
+  };
+
   // Mock data for graphs - New account profile starting 2026
   const monthlyData = [
     { name: 'Dec', income: 0, expense: 0 },
@@ -49,7 +54,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
                 <span className="text-slate-500 font-medium">{t.monthlyIncome}</span>
             </div>
             <h3 className="text-2xl font-bold text-slate-900">{formatCurrency(195000000)}</h3>
-            <span className="text-xs text-green-600 bg-green-50 w-fit px-2 py-1 rounded mt-2">+100% vs last month</span>
+            <span className="text-xs text-green-600 bg-green-50 w-fit px-2 py-1 rounded mt-2">+100% {t.vsLastMonth}</span>
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
@@ -60,7 +65,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
                 <span className="text-slate-500 font-medium">{t.monthlyExpenses}</span>
             </div>
             <h3 className="text-2xl font-bold text-slate-900">{formatCurrency(0)}</h3>
-            <span className="text-xs text-slate-400 bg-slate-50 w-fit px-2 py-1 rounded mt-2">No expenses yet</span>
+            <span className="text-xs text-slate-400 bg-slate-50 w-fit px-2 py-1 rounded mt-2">{t.noExpensesYet}</span>
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
@@ -71,7 +76,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
                 <span className="text-slate-500 font-medium">{t.netSavings}</span>
             </div>
             <h3 className="text-2xl font-bold text-slate-900">{formatCurrency(195000000)}</h3>
-            <span className="text-xs text-slate-400 mt-2">100% of income</span>
+            <span className="text-xs text-slate-400 mt-2">100% {t.ofIncome}</span>
         </div>
       </div>
 
@@ -93,6 +98,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
                             tickLine={false} 
                             tick={{fill: '#94a3b8', fontSize: 12}} 
                             dy={10} 
+                            tickFormatter={(value) => translateMonth(value)}
                         />
                         <YAxis 
                             axisLine={false} 
@@ -104,6 +110,7 @@ const Statistics: React.FC<StatisticsProps> = ({ lang }) => {
                             contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px'}} 
                             cursor={{fill: '#f8fafc'}}
                             formatter={(value: number) => formatCurrency(value)}
+                            labelFormatter={(label) => translateMonth(label as string)}
                         />
                         <Legend wrapperStyle={{paddingTop: '20px'}} />
                         <Bar dataKey="income" name={t.incomeLabel} fill="#0d9488" radius={[4, 4, 0, 0]} maxBarSize={40} />

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUpRight, ArrowDownLeft, Wallet, MoreHorizontal, Eye, EyeOff, Snowflake, XCircle, PlusCircle, Target } from 'lucide-react';
-import { Account, Transaction, Language, User, Tab } from '../types';
-import { TRANSLATIONS, CARDS } from '../constants';
+import { ArrowUpRight, ArrowDownLeft, Wallet, MoreHorizontal, Eye, EyeOff, Snowflake, XCircle, PlusCircle, Target, X, Filter, Download, Archive, Settings } from 'lucide-react';
+import { Account, Transaction, Language, User, Tab, Goal } from '../types';
+import { TRANSLATIONS, CARDS, GOALS } from '../constants';
 
 interface DashboardProps {
   user: User;
@@ -25,10 +25,48 @@ const chartData = [
 
 const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lang, setActiveTab, addNotification }) => {
   const t = TRANSLATIONS[lang];
-  const [userCard, setUserCard] = useState(CARDS[0]);
+  
+  // Persist Goals
+  const [goals, setGoals] = useState<Goal[]>(() => {
+      const saved = localStorage.getItem('ecobank_goals');
+      return saved ? JSON.parse(saved) : GOALS;
+  });
+
+  // Persist Main Card Status (Since we show it here)
+  const [userCard, setUserCard] = useState(() => {
+      const saved = localStorage.getItem('ecobank_cards');
+      const cards = saved ? JSON.parse(saved) : CARDS;
+      return cards[0]; // Just grab the first card for dashboard
+  });
+
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [showCardMenu, setShowCardMenu] = useState(false);
   
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [newGoalName, setNewGoalName] = useState('');
+  const [newGoalAmount, setNewGoalAmount] = useState('');
+  const [activeMenu, setActiveMenu] = useState<'transactions' | 'goals' | null>(null);
+  
+  // Save Goals whenever they change
+  useEffect(() => {
+      localStorage.setItem('ecobank_goals', JSON.stringify(goals));
+  }, [goals]);
+
+  // Note: We don't save card changes *back* here to the main array because Cards.tsx handles the main array. 
+  // But for this simple dashboard view, we update local state and localStorage for consistency if the user modifies it here.
+  useEffect(() => {
+      // Sync with global storage if other tabs changed it
+      const handleStorageChange = () => {
+          const saved = localStorage.getItem('ecobank_cards');
+          if (saved) {
+             const cards = JSON.parse(saved);
+             if (cards.length > 0) setUserCard(cards[0]);
+          }
+      };
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const cleanNumber = userCard.number.replace(/\s/g, '');
 
   const formatCurrency = (amount: number) => {
@@ -48,10 +86,23 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
       });
   };
 
+  const translateMonth = (monthKey: string) => {
+      const key = monthKey.toLowerCase();
+      return t[key] || monthKey;
+  };
+
   const toggleFreeze = () => {
     const newStatus = userCard.status === 'active' ? 'frozen' : 'active';
-    setUserCard(prev => ({ ...prev, status: newStatus }));
+    const updatedCard = { ...userCard, status: newStatus };
+    
+    setUserCard(updatedCard);
     setShowCardMenu(false);
+    
+    // Update Global Storage so Cards.tsx sees it too
+    const saved = localStorage.getItem('ecobank_cards');
+    const allCards = saved ? JSON.parse(saved) : CARDS;
+    const updatedAllCards = allCards.map((c: any) => c.id === updatedCard.id ? updatedCard : c);
+    localStorage.setItem('ecobank_cards', JSON.stringify(updatedAllCards));
     
     const msg = lang === Language.FR 
         ? `Votre carte a été ${newStatus === 'frozen' ? 'bloquée' : 'débloquée'} avec succès.`
@@ -60,14 +111,100 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
   };
 
   const handleAddGoal = () => {
-      const msg = lang === Language.FR 
-        ? "Création d'objectif : Fonctionnalité disponible prochainement."
-        : "Create Goal: Feature coming soon.";
-      addNotification(msg);
+      setIsGoalModalOpen(true);
+  };
+
+  const handleCreateGoal = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newGoalName || !newGoalAmount) return;
+
+      const goal: Goal = {
+          id: `g-${Date.now()}`,
+          name: newGoalName,
+          targetAmount: parseFloat(newGoalAmount),
+          currentAmount: 0,
+          currency: 'XOF',
+          icon: 'Target'
+      };
+
+      setGoals(prev => [...prev, goal]);
+      setIsGoalModalOpen(false);
+      setNewGoalName('');
+      setNewGoalAmount('');
+      
+      addNotification(lang === Language.FR ? 'Objectif créé avec succès !' : 'Goal created successfully!');
+  };
+
+  const toggleMenu = (menu: 'transactions' | 'goals') => {
+      setActiveMenu(activeMenu === menu ? null : menu);
+  };
+
+  const handleMenuAction = (action: string) => {
+      setActiveMenu(null);
+      addNotification(lang === Language.FR ? `Action effectuée : ${action}` : `Action performed: ${action}`);
   };
 
   return (
-    <div className="space-y-6 pb-10 max-w-full">
+    <div className="space-y-6 pb-10 max-w-full relative" onClick={() => setActiveMenu(null)}>
+      
+      {/* Goal Creation Modal */}
+      {isGoalModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+              <div 
+                  className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+                  onClick={(e) => e.stopPropagation()}
+              >
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-slate-900">{t.createGoal}</h3>
+                      <button onClick={() => setIsGoalModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                          <X size={24} />
+                      </button>
+                  </div>
+                  
+                  <form onSubmit={handleCreateGoal} className="space-y-4">
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.goalName}</label>
+                          <input 
+                              type="text" 
+                              value={newGoalName}
+                              onChange={(e) => setNewGoalName(e.target.value)}
+                              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-teal-500"
+                              placeholder={lang === Language.FR ? "Ex: Vacances, Voiture..." : "Ex: Holiday, Car..."}
+                              autoFocus
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{t.targetAmount} (XOF)</label>
+                          <input 
+                              type="number" 
+                              value={newGoalAmount}
+                              onChange={(e) => setNewGoalAmount(e.target.value)}
+                              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-teal-500"
+                              placeholder="0"
+                          />
+                      </div>
+                      
+                      <div className="flex gap-3 pt-4">
+                          <button 
+                              type="button" 
+                              onClick={() => setIsGoalModalOpen(false)}
+                              className="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                          >
+                              {t.cancel}
+                          </button>
+                          <button 
+                              type="submit" 
+                              disabled={!newGoalName || !newGoalAmount}
+                              className="flex-1 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
+                          >
+                              {t.create}
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
@@ -78,7 +215,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
         </div>
       </div>
 
-      {/* Stats row - Adaptive: Compact on mobile, Rich cards on Desktop */}
+      {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-6">
         {/* Expenses */}
         <div className="bg-white rounded-[1.5rem] md:rounded-3xl p-4 md:p-6 shadow-sm border border-slate-50 relative overflow-hidden group hover:shadow-md transition-shadow">
@@ -139,9 +276,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
         </div>
       </div>
 
-      {/* Row 2: Chart (Desktop Only) & Card (All) */}
+      {/* Row 2: Chart & Card */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Statistics Chart (Hidden on Mobile, Visible on Desktop) */}
+        {/* Statistics Chart */}
         <div className="hidden lg:block bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
@@ -154,9 +291,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                     </div>
                     <select className="bg-slate-50 border-none text-sm font-semibold text-slate-600 rounded-lg px-3 py-1 outline-none cursor-pointer">
                         <option>{t.timeRange}</option>
-                        <option value="1">1 Month</option>
-                        <option value="3">3 Months</option>
-                        <option value="6">6 Months</option>
+                        <option value="1">{t.month1}</option>
+                        <option value="3">{t.month3}</option>
+                        <option value="6">{t.month6}</option>
                     </select>
                 </div>
             </div>
@@ -177,6 +314,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                             tickLine={false} 
                             tick={{fill: '#94a3b8', fontSize: 11}} 
                             dy={10} 
+                            tickFormatter={(value) => translateMonth(value)}
                         />
                         <YAxis 
                             axisLine={false} 
@@ -188,6 +326,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                             contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '8px 12px'}} 
                             cursor={{stroke: '#8b5cf6', strokeWidth: 1, strokeDasharray: '4 4'}}
                             formatter={(value: number) => [formatCurrency(value), t.incomeLabel]}
+                            labelFormatter={(label) => translateMonth(label as string)}
                         />
                         <Area 
                             type="monotone" 
@@ -208,32 +347,29 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
             <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h3 className="font-bold text-lg md:text-xl text-slate-900">{t.cards}</h3>
                 
-                {/* Mobile Toggle */}
                 <button 
                     onClick={() => setShowCardDetails(!showCardDetails)}
                     className="md:hidden text-teal-600 text-xs font-bold"
                 >
-                    {showCardDetails ? 'Masquer' : 'Afficher'}
+                    {showCardDetails ? t.hideCardDetails : t.showCardDetails}
                 </button>
 
-                {/* Desktop Menu */}
                 <div className="relative hidden md:block">
                     <button 
-                        onClick={() => setShowCardMenu(!showCardMenu)}
+                        onClick={(e) => { e.stopPropagation(); setShowCardMenu(!showCardMenu); }}
                         className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 transition-colors"
                     >
                         <MoreHorizontal />
                     </button>
                     {showCardMenu && (
                         <>
-                            <div className="fixed inset-0 z-10" onClick={() => setShowCardMenu(false)}></div>
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden">
                                 <button 
                                     onClick={toggleFreeze}
                                     className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700 font-medium"
                                 >
                                     <Snowflake size={16} className={userCard.status === 'active' ? "text-blue-500" : "text-slate-400"} />
-                                    {userCard.status === 'active' ? t.freeze : (lang === Language.FR ? 'Débloquer' : 'Unfreeze')}
+                                    {userCard.status === 'active' ? t.freeze : t.unfreeze}
                                 </button>
                             </div>
                         </>
@@ -241,13 +377,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                 </div>
             </div>
             
-            {/* The Card Component */}
             <div className={`relative w-full aspect-[1.586/1] rounded-[2rem] p-6 md:p-9 text-white flex flex-col justify-between shadow-2xl overflow-hidden transition-all duration-300 group ${
                 userCard.status === 'frozen' ? 'bg-slate-500 grayscale shadow-none' : 'shadow-teal-900/10 md:shadow-teal-900/20 hover:scale-[1.01]'
             }`} 
                  style={{ backgroundColor: userCard.status === 'frozen' ? undefined : '#00A88F' }}>
                 
-                {/* Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10 pointer-events-none mix-blend-overlay"></div>
                 
                 <div className="flex justify-between items-start z-10">
@@ -285,11 +419,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
 
                 <div className="z-10 flex justify-between items-end">
                     <div>
-                        <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold">Card Holder</p>
+                        <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold">{t.cardHolder}</p>
                         <p className="font-mono text-[10px] sm:text-xs md:text-lg uppercase tracking-widest font-medium truncate max-w-[120px] md:max-w-none">{userCard.holder}</p>
                     </div>
                     <div>
-                         <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold text-right">Expires</p>
+                         <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold text-right">{t.expires}</p>
                          <p className="font-mono text-[10px] sm:text-xs md:text-lg tracking-widest font-medium text-right">{userCard.expiry}</p>
                     </div>
                 </div>
@@ -297,8 +431,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
         </div>
       </div>
 
-      {/* Row 3: Cashback, Transactions, Goals (Restored Desktop Grid) */}
+      {/* Row 3: Cashback, Transactions, Goals */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        
         {/* Cashback - Desktop Only */}
         <div className="hidden lg:flex bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex-col h-full">
             <h3 className="font-bold text-xl text-slate-900 mb-6">{t.cashback}</h3>
@@ -312,15 +447,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
         </div>
 
         {/* Transactions List */}
-        <div className="bg-white rounded-[2rem] md:rounded-3xl p-6 shadow-sm border border-slate-50 md:border-slate-100 flex flex-col h-full">
-            <div className="flex justify-between items-center mb-5 md:mb-6">
+        <div className="bg-white rounded-[2rem] md:rounded-3xl p-6 shadow-sm border border-slate-50 md:border-slate-100 flex flex-col h-full overflow-visible">
+            <div className="flex justify-between items-center mb-5 md:mb-6 relative">
                 <h3 className="font-bold text-lg md:text-xl text-slate-900">{t.transactions}</h3>
-                <MoreHorizontal className="hidden md:block text-slate-400 cursor-pointer" />
+                
+                <div className="relative">
+                    <MoreHorizontal 
+                        className="hidden md:block text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" 
+                        onClick={(e) => { e.stopPropagation(); toggleMenu('transactions'); }}
+                    />
+                    {activeMenu === 'transactions' && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                            <button onClick={() => handleMenuAction(t.downloadPdf)} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700">
+                                <Download size={16} /> {t.downloadPdf}
+                            </button>
+                            <button onClick={() => handleMenuAction(t.filter)} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700">
+                                <Filter size={16} /> {t.filter}
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <button 
                     onClick={() => setActiveTab(Tab.WALLET)}
                     className="md:hidden text-[10px] font-bold text-teal-600 uppercase"
                 >
-                    Tout voir
+                    {t.viewMore}
                 </button>
             </div>
 
@@ -358,27 +510,77 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
         </div>
 
         {/* Goals - Desktop Only */}
-        <div className="hidden lg:flex bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex-col h-full">
-            <div className="flex justify-between items-center mb-6">
+        <div className="hidden lg:flex bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex-col h-full overflow-visible">
+            <div className="flex justify-between items-center mb-6 relative">
                 <h3 className="font-bold text-xl text-slate-900">{t.goals}</h3>
-                <MoreHorizontal className="text-slate-400 cursor-pointer" />
+                
+                <div className="relative">
+                     <MoreHorizontal 
+                        className="text-slate-400 cursor-pointer hover:text-slate-600 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); toggleMenu('goals'); }}
+                    />
+                    {activeMenu === 'goals' && (
+                        <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 z-30 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                            <button onClick={() => handleMenuAction(t.manageGoals)} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700">
+                                <Settings size={16} /> {t.manageGoals}
+                            </button>
+                            <button onClick={() => handleMenuAction(t.archivedGoals)} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700">
+                                <Archive size={16} /> {t.archivedGoals}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                    <Target className="text-slate-300" size={32} />
+            {goals.length > 0 ? (
+                <div className="flex-1 space-y-4 overflow-y-auto max-h-[300px] pr-2">
+                    {goals.map(goal => (
+                        <div key={goal.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
+                                    <Target size={18} />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-slate-900 text-sm">{goal.name}</h4>
+                                    <p className="text-xs text-slate-500">{formatCurrency(goal.currentAmount)} / {formatCurrency(goal.targetAmount)}</p>
+                                </div>
+                                <span className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md">
+                                    {Math.round((goal.currentAmount / goal.targetAmount) * 100)}%
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-violet-500 rounded-full" 
+                                    style={{ width: `${Math.min((goal.currentAmount / goal.targetAmount) * 100, 100)}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    ))}
+                    <button 
+                        onClick={handleAddGoal}
+                        className="w-full py-3 border border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-teal-600 hover:border-teal-300 hover:bg-teal-50/50 transition-all flex items-center justify-center gap-2 text-sm font-semibold"
+                    >
+                        <PlusCircle size={16} />
+                        {t.addGoal}
+                    </button>
                 </div>
-                <p className="text-slate-900 font-semibold mb-1">{t.noGoals}</p>
-                <p className="text-slate-400 text-xs px-6 mb-6">{t.noGoalsDesc}</p>
-                
-                <button 
-                    onClick={handleAddGoal}
-                    className="flex items-center gap-2 text-violet-600 font-semibold text-sm hover:bg-violet-50 px-4 py-2 rounded-lg transition-colors"
-                >
-                    <PlusCircle size={18} />
-                    {t.addGoal}
-                </button>
-            </div>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                        <Target className="text-slate-300" size={32} />
+                    </div>
+                    <p className="text-slate-900 font-semibold mb-1">{t.noGoals}</p>
+                    <p className="text-slate-400 text-xs px-6 mb-6">{t.noGoalsDesc}</p>
+                    
+                    <button 
+                        onClick={handleAddGoal}
+                        className="flex items-center gap-2 text-violet-600 font-semibold text-sm hover:bg-violet-50 px-4 py-2 rounded-lg transition-colors"
+                    >
+                        <PlusCircle size={18} />
+                        {t.addGoal}
+                    </button>
+                </div>
+            )}
         </div>
       </div>
     </div>

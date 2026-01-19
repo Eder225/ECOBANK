@@ -35,6 +35,11 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
     }).format(amount);
   };
 
+  const translateMonth = (monthKey: string) => {
+      const key = monthKey.toLowerCase();
+      return t[key] || monthKey;
+  };
+
   const handleDownloadStatement = (e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveMenuId(null);
@@ -91,7 +96,7 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
             
             <div className="z-10 flex items-center gap-2 text-sm font-medium text-green-600 bg-green-50 w-fit px-3 py-1 rounded-full">
                 <TrendingUp size={16} />
-                <span>+100% this month</span>
+                <span>+100% {t.thisMonth}</span>
             </div>
         </div>
 
@@ -119,7 +124,7 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
             </div>
             
             <p className="text-xs text-slate-400 mt-4">
-                You haven't spent anything this month. Great job saving!
+                {t.greatJobSaving}
             </p>
         </div>
       </div>
@@ -130,7 +135,7 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
              <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-xl text-slate-900">{t.assetEvolution}</h3>
                 <select className="bg-slate-50 border-none text-sm font-semibold text-slate-600 rounded-lg px-3 py-1 outline-none cursor-pointer">
-                    <option>6 months</option>
+                    <option>{t.month6}</option>
                 </select>
             </div>
             
@@ -150,6 +155,7 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
                             tickLine={false} 
                             tick={{fill: '#94a3b8', fontSize: 12}} 
                             dy={10} 
+                            tickFormatter={(value) => translateMonth(value)}
                         />
                         <YAxis 
                             axisLine={false} 
@@ -161,6 +167,7 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
                             contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '8px 12px'}} 
                             cursor={{stroke: '#0d9488', strokeWidth: 1, strokeDasharray: '4 4'}}
                             formatter={(value: number) => [formatCurrency(value), 'Balance']}
+                            labelFormatter={(label) => translateMonth(label as string)}
                         />
                         <Area 
                             type="monotone" 
@@ -205,14 +212,14 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
                                             className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700"
                                         >
                                             <Download size={16} />
-                                            {lang === Language.FR ? "Télécharger relevé" : "Download Statement"}
+                                            {t.downloadStatement}
                                         </button>
                                         <button 
                                             onClick={handleDownloadIBAN}
                                             className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors flex items-center gap-3 text-slate-700"
                                         >
                                             <FileText size={16} />
-                                            {lang === Language.FR ? "Télécharger RIB" : "Download IBAN"}
+                                            {t.downloadIBAN}
                                         </button>
                                     </div>
                                 )}
@@ -236,8 +243,8 @@ const Wallet: React.FC<WalletProps> = ({ accounts, lang, addNotification }) => {
                         </div>
                     </div>
                     <div>
-                        <p className="text-sm text-teal-600 font-medium mb-1">Open Savings</p>
-                        <p className="text-lg font-bold text-teal-800">Start saving</p>
+                        <p className="text-sm text-teal-600 font-medium mb-1">{t.openSavings}</p>
+                        <p className="text-lg font-bold text-teal-800">{t.startSaving}</p>
                     </div>
                 </div>
             </div>
