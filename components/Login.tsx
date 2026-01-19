@@ -10,7 +10,9 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
-  const t = TRANSLATIONS[lang];
+  // Safe access to translations with fallback to FR if current lang is invalid
+  const t = TRANSLATIONS[lang] || TRANSLATIONS[Language.FR];
+  
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -48,6 +50,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, lang, setLang }) => {
     setter(value);
     if (error) setError(false);
   };
+
+  // If translations are somehow missing completely, render minimal fallback
+  if (!t) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen flex flex-col font-sans">

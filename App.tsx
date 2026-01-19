@@ -12,9 +12,9 @@ import Cashback from './components/Cashback';
 import Support from './components/Support';
 import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
-import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS, CARDS } from './constants';
+import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS } from './constants';
 import { Tab, Language, Notification, Transaction, User } from './types';
-import { Bell, CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 
 interface Toast {
   id: number;
@@ -41,15 +41,33 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User>(() => loadState('ecobank_user', CURRENT_USER));
 
   // 3. Language Preference
-  const [lang, setLang] = useState<Language>(() => loadState('ecobank_lang', Language.FR));
+  const [lang, setLang] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem('ecobank_lang');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Strict validation: must be 'FR' or 'EN'
+        if (parsed === Language.FR || parsed === Language.EN) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse language preference:', e);
+    }
+    return Language.FR;
+  });
 
   // 4. Notifications
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     const saved = localStorage.getItem('ecobank_notifications');
     if (saved) {
-        // Need to convert string dates back to Date objects
-        const parsed = JSON.parse(saved);
-        return parsed.map((n: any) => ({ ...n, date: new Date(n.date) }));
+        try {
+            // Need to convert string dates back to Date objects
+            const parsed = JSON.parse(saved);
+            return parsed.map((n: any) => ({ ...n, date: new Date(n.date) }));
+        } catch(e) {
+            return [];
+        }
     }
     return [];
   });

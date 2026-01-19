@@ -418,11 +418,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
                 </div>
 
                 <div className="z-10 flex justify-between items-end">
-                    <div>
-                        <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold">{t.cardHolder}</p>
-                        <p className="font-mono text-[10px] sm:text-xs md:text-lg uppercase tracking-widest font-medium truncate max-w-[120px] md:max-w-none">{userCard.holder}</p>
+                    <div className="flex-1 mr-4">
+                        {/* Label removed */}
+                        <p className="font-mono text-xs sm:text-sm md:text-lg uppercase tracking-wider font-bold truncate max-w-[160px] md:max-w-[320px] block">{userCard.holder}</p>
                     </div>
-                    <div>
+                    <div className="shrink-0">
                          <p className="text-[8px] md:text-xs uppercase opacity-75 tracking-[0.2em] mb-0.5 md:mb-1 font-semibold text-right">{t.expires}</p>
                          <p className="font-mono text-[10px] sm:text-xs md:text-lg tracking-widest font-medium text-right">{userCard.expiry}</p>
                     </div>

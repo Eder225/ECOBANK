@@ -106,13 +106,13 @@ const Cards: React.FC<CardsProps> = ({ lang, addNotification }) => {
             </div>
 
             <div className="flex justify-between items-end z-10 mt-auto">
-              <div>
-                <p className="text-[9px] md:text-[10px] opacity-70 uppercase mb-0.5">{t.cardHolder}</p>
-                <p className="font-medium tracking-wide text-xs md:text-sm truncate max-w-[120px] md:max-w-[180px]">{card.holder}</p>
+              <div className="flex-1 mr-2">
+                {/* Label removed */}
+                <p className="font-medium tracking-wide text-sm md:text-lg truncate max-w-[140px] md:max-w-[200px] font-bold">{card.holder}</p>
               </div>
-              <div>
+              <div className="shrink-0">
                 <p className="text-[9px] md:text-[10px] opacity-70 uppercase text-right mb-0.5">{t.expires}</p>
-                <p className="font-medium tracking-wide text-xs md:text-sm">{card.expiry}</p>
+                <p className="font-medium tracking-wide text-xs md:text-sm text-right">{card.expiry}</p>
               </div>
             </div>
             
