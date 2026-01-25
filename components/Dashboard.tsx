@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ArrowUpRight, ArrowDownLeft, Wallet, MoreHorizontal, Eye, EyeOff, Snowflake, XCircle, PlusCircle, Target, X, Filter, Download, Archive, Settings } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Wallet, MoreHorizontal, Eye, EyeOff, Snowflake, XCircle, PlusCircle, Target, X, Filter, Download, Archive, Settings, AlertTriangle } from 'lucide-react';
 import { Account, Transaction, Language, User, Tab, Goal } from '../types';
 import { TRANSLATIONS, CARDS, GOALS } from '../constants';
 
@@ -19,7 +19,7 @@ const chartData = [
   { name: 'Feb', value: 195000000 },
   { name: 'Mar', value: 195000000 },
   { name: 'Apr', value: 195000000 },
-  { name: 'May', value: 195000000 },
+  { name: 'May', value: 195000000 }, 
   { name: 'Jun', value: 195000000 }, 
 ];
 
@@ -32,11 +32,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
       return saved ? JSON.parse(saved) : GOALS;
   });
 
-  // Persist Main Card Status (Since we show it here)
+  // Persist Main Card Status
   const [userCard, setUserCard] = useState(() => {
       const saved = localStorage.getItem('ecobank_cards');
       const cards = saved ? JSON.parse(saved) : CARDS;
-      return cards[0]; // Just grab the first card for dashboard
+      return cards[0];
   });
 
   const [showCardDetails, setShowCardDetails] = useState(false);
@@ -46,16 +46,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
   const [newGoalName, setNewGoalName] = useState('');
   const [newGoalAmount, setNewGoalAmount] = useState('');
   const [activeMenu, setActiveMenu] = useState<'transactions' | 'goals' | null>(null);
+  const [showAlert, setShowAlert] = useState(true);
   
+  // Check if there is a failed transaction recently to show the alert
+  const lastFailedTx = transactions.find(tx => tx.status === 'failed');
+
   // Save Goals whenever they change
   useEffect(() => {
       localStorage.setItem('ecobank_goals', JSON.stringify(goals));
   }, [goals]);
 
-  // Note: We don't save card changes *back* here to the main array because Cards.tsx handles the main array. 
-  // But for this simple dashboard view, we update local state and localStorage for consistency if the user modifies it here.
   useEffect(() => {
-      // Sync with global storage if other tabs changed it
       const handleStorageChange = () => {
           const saved = localStorage.getItem('ecobank_cards');
           if (saved) {
@@ -74,7 +75,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
       style: 'currency',
       currency: 'XOF',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
   
@@ -98,7 +99,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
     setUserCard(updatedCard);
     setShowCardMenu(false);
     
-    // Update Global Storage so Cards.tsx sees it too
     const saved = localStorage.getItem('ecobank_cards');
     const allCards = saved ? JSON.parse(saved) : CARDS;
     const updatedAllCards = allCards.map((c: any) => c.id === updatedCard.id ? updatedCard : c);
@@ -147,6 +147,36 @@ const Dashboard: React.FC<DashboardProps> = ({ user, accounts, transactions, lan
   return (
     <div className="space-y-6 pb-10 max-w-full relative" onClick={() => setActiveMenu(null)}>
       
+      {/* Alert Banner for Blocked Withdrawal */}
+      {showAlert && lastFailedTx && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500 shadow-sm">
+            <div className="bg-amber-100 p-2 rounded-xl text-amber-600 shrink-0">
+                <AlertTriangle size={24} />
+            </div>
+            <div className="flex-1">
+                <h4 className="font-bold text-amber-900 text-sm md:text-base">
+                    {lang === Language.FR ? 'Action requise : Retrait bloqué' : 'Action required: Blocked Withdrawal'}
+                </h4>
+                <p className="text-amber-700 text-xs md:text-sm mt-1 leading-relaxed">
+                    {lang === Language.FR 
+                        ? `Votre retrait de ${formatCurrency(lastFailedTx.amount)} à ${lastFailedTx.recipient} a été bloqué. Nous vous prions de contacter notre support client pour toute assistance.`
+                        : `Your withdrawal of ${formatCurrency(lastFailedTx.amount)} at ${lastFailedTx.recipient} has been blocked. We kindly ask you to contact our customer support for assistance.`}
+                </p>
+                <div className="flex gap-4 mt-3">
+                    <button 
+                        onClick={() => setActiveTab(Tab.SUPPORT)}
+                        className="bg-amber-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-amber-800 transition-colors shadow-sm"
+                    >
+                        {t.support}
+                    </button>
+                </div>
+            </div>
+            <button onClick={() => setShowAlert(false)} className="text-amber-400 hover:text-amber-600 p-1 transition-colors">
+                <X size={20} />
+            </button>
+        </div>
+      )}
+
       {/* Goal Creation Modal */}
       {isGoalModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

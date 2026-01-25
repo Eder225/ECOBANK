@@ -14,14 +14,13 @@ import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
 import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS } from './constants';
 import { Tab, Language, Notification, Transaction, User } from './types';
-import { CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2, X, Loader2 } from 'lucide-react';
 
 interface Toast {
   id: number;
   message: string;
 }
 
-// Helper to load from localStorage or fallback to default
 const loadState = <T,>(key: string, defaultValue: T): T => {
   try {
     const saved = localStorage.getItem(key);
@@ -32,176 +31,107 @@ const loadState = <T,>(key: string, defaultValue: T): T => {
 };
 
 const App: React.FC = () => {
-  // --- Persistent States ---
-  
-  // 1. Auth Status
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => loadState('ecobank_isLoggedIn', false));
-
-  // 2. User Data (Avatar, Name changes)
   const [currentUser, setCurrentUser] = useState<User>(() => loadState('ecobank_user', CURRENT_USER));
-
-  // 3. Language Preference
   const [lang, setLang] = useState<Language>(() => {
     try {
       const saved = localStorage.getItem('ecobank_lang');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Strict validation: must be 'FR' or 'EN'
-        if (parsed === Language.FR || parsed === Language.EN) {
-          return parsed;
-        }
+        if (parsed === Language.FR || parsed === Language.EN) return parsed;
       }
-    } catch (e) {
-      console.warn('Failed to parse language preference:', e);
-    }
+    } catch (e) {}
     return Language.FR;
   });
 
-  // 4. Notifications
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     const saved = localStorage.getItem('ecobank_notifications');
     if (saved) {
         try {
-            // Need to convert string dates back to Date objects
             const parsed = JSON.parse(saved);
             return parsed.map((n: any) => ({ ...n, date: new Date(n.date) }));
-        } catch(e) {
-            return [];
-        }
+        } catch(e) { return []; }
     }
-    return [];
+    return [
+      {
+        id: 'notif-failed-atm',
+        message: 'Alerte : Votre retrait à BANKOMAT ICA GAVLE SE a été bloqué. Nous vous prions de contacter le support client.',
+        date: new Date('2026-01-25T12:24:00Z'),
+        read: false
+      }
+    ];
   });
 
-  // 5. Transactions History
   const [transactions, setTransactions] = useState<Transaction[]>(() => loadState('ecobank_transactions', RECENT_TRANSACTIONS));
 
-  // --- Ephemeral States (Reset on reload) ---
+  // Ephemeral States
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DASHBOARD);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // --- Effects to Save Data on Change ---
+  // Effects
+  useEffect(() => { localStorage.setItem('ecobank_isLoggedIn', JSON.stringify(isLoggedIn)); }, [isLoggedIn]);
+  useEffect(() => { localStorage.setItem('ecobank_user', JSON.stringify(currentUser)); }, [currentUser]);
+  useEffect(() => { localStorage.setItem('ecobank_lang', JSON.stringify(lang)); }, [lang]);
+  useEffect(() => { localStorage.setItem('ecobank_notifications', JSON.stringify(notifications)); }, [notifications]);
+  useEffect(() => { localStorage.setItem('ecobank_transactions', JSON.stringify(transactions)); }, [transactions]);
 
-  useEffect(() => {
-    localStorage.setItem('ecobank_isLoggedIn', JSON.stringify(isLoggedIn));
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    localStorage.setItem('ecobank_user', JSON.stringify(currentUser));
-  }, [currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem('ecobank_lang', JSON.stringify(lang));
-  }, [lang]);
-
-  useEffect(() => {
-    localStorage.setItem('ecobank_notifications', JSON.stringify(notifications));
-  }, [notifications]);
-
-  useEffect(() => {
-    localStorage.setItem('ecobank_transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const handleTabChange = (newTab: Tab) => {
+    if (newTab === activeTab) return;
+    
+    setIsNavigating(true);
+    // Délai simulé de 800ms pour l'effet bancaire premium
+    setTimeout(() => {
+      setActiveTab(newTab);
+      setIsNavigating(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 800);
+  };
 
   const handleLogin = () => {
-    setIsLoggedIn(true);
+    setIsNavigating(true);
+    setTimeout(() => {
+        setIsLoggedIn(true);
+        setIsNavigating(false);
+    }, 1000);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setActiveTab(Tab.DASHBOARD);
-    // We do NOT clear localStorage here so data persists for next login
-  };
-
-  const updateUserAvatar = (newAvatarUrl: string) => {
-    setCurrentUser(prev => ({ ...prev, avatar: newAvatarUrl }));
   };
 
   const addNotification = (message: string) => {
-    // 1. Add to persistent notifications list (Bell icon)
-    const newNotif: Notification = {
-      id: Date.now().toString(),
-      message,
-      date: new Date(),
-      read: false
-    };
+    const newNotif: Notification = { id: Date.now().toString(), message, date: new Date(), read: false };
     setNotifications(prev => [newNotif, ...prev]);
-
-    // 2. Trigger a temporary Toast Popup
     const toastId = Date.now();
     setToasts(prev => [...prev, { id: toastId, message }]);
-
-    // Auto remove toast after 4 seconds
-    setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== toastId));
-    }, 4000);
-  };
-
-  const removeToast = (id: number) => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-  };
-
-  const addTransaction = (tx: Transaction) => {
-    setTransactions(prev => [tx, ...prev]);
-  };
-
-  const markNotificationsAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setTimeout(() => { setToasts(prev => prev.filter(t => t.id !== toastId)); }, 4000);
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case Tab.DASHBOARD:
-        return <Dashboard 
-                  user={currentUser} 
-                  accounts={ACCOUNTS} 
-                  transactions={transactions} 
-                  lang={lang} 
-                  setActiveTab={setActiveTab}
-                  addNotification={addNotification}
-               />;
+        return <Dashboard user={currentUser} accounts={ACCOUNTS} transactions={transactions} lang={lang} setActiveTab={handleTabChange} addNotification={addNotification} />;
       case Tab.WALLET:
-        return <Wallet 
-                  accounts={ACCOUNTS} 
-                  lang={lang} 
-                  addNotification={addNotification}
-               />;
+        return <Wallet accounts={ACCOUNTS} lang={lang} addNotification={addNotification} />;
       case Tab.TRANSFERS:
-        return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} addTransaction={addTransaction} />;
+        return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} addTransaction={(tx) => setTransactions(p => [tx, ...p])} />;
       case Tab.CARDS:
-        return <Cards 
-                  lang={lang} 
-                  addNotification={addNotification}
-               />;
+        return <Cards lang={lang} addNotification={addNotification} />;
       case Tab.PROFILE:
-        return <Profile user={currentUser} accounts={ACCOUNTS} lang={lang} onUpdateAvatar={updateUserAvatar} />;
+        return <Profile user={currentUser} accounts={ACCOUNTS} lang={lang} onUpdateAvatar={(url) => setCurrentUser(p => ({ ...p, avatar: url }))} />;
       case Tab.STATISTICS:
         return <Statistics lang={lang} />;
       case Tab.CASHBACK:
-        return <Cashback 
-                  lang={lang} 
-                  addNotification={addNotification}
-               />;
+        return <Cashback lang={lang} addNotification={addNotification} />;
       case Tab.SUPPORT:
         return <Support lang={lang} />;
       case Tab.SETTINGS:
-        return <Settings 
-                  user={currentUser} 
-                  lang={lang} 
-                  setLang={setLang} 
-                  addNotification={addNotification}
-               />;
+        return <Settings user={currentUser} lang={lang} setLang={setLang} addNotification={addNotification} />;
       default:
-        return <Dashboard 
-                  user={currentUser} 
-                  accounts={ACCOUNTS} 
-                  transactions={transactions} 
-                  lang={lang} 
-                  setActiveTab={setActiveTab}
-                  addNotification={addNotification}
-               />;
+        return null;
     }
   };
 
@@ -211,11 +141,24 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
-      {/* Desktop Sidebar - Fixed width, full height */}
+      {/* Loading Overlay */}
+      {isNavigating && (
+        <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+            <div className="relative">
+                <div className="w-16 h-16 border-4 border-teal-100 border-t-teal-600 rounded-full animate-spin"></div>
+                <img src="https://i.imgur.com/j8IKssI.png" className="absolute inset-0 m-auto w-8 h-8 object-contain" alt="Logo" />
+            </div>
+            <p className="mt-4 text-teal-800 font-bold text-sm tracking-widest uppercase animate-pulse">
+                {lang === Language.FR ? 'Chargement sécurisé...' : 'Securing connection...'}
+            </p>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 shrink-0 h-full bg-[#004b6b]">
         <Sidebar 
             activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
+            setActiveTab={handleTabChange} 
             lang={lang} 
             onLogout={handleLogout}
         />
@@ -226,42 +169,32 @@ const App: React.FC = () => {
             user={currentUser} 
             lang={lang} 
             setLang={setLang} 
-            toggleSidebar={toggleSidebar}
+            toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             notifications={notifications}
-            markNotificationsAsRead={markNotificationsAsRead}
+            markNotificationsAsRead={() => setNotifications(p => p.map(n => ({ ...n, read: true })))}
         />
         
-        {/* Toast Container */}
+        {/* Toasts */}
         <div className="fixed top-20 right-4 z-[60] flex flex-col gap-3 pointer-events-none max-w-[90vw] md:max-w-md w-full">
             {toasts.map(toast => (
-                <div 
-                    key={toast.id} 
-                    className="bg-slate-800 text-white p-4 rounded-xl shadow-2xl flex items-start gap-3 pointer-events-auto animate-in slide-in-from-right-10 fade-in duration-300 border-l-4 border-teal-500"
-                >
-                    <div className="mt-0.5 text-teal-400 shrink-0">
-                        <CheckCircle2 size={18} />
-                    </div>
+                <div key={toast.id} className="bg-slate-800 text-white p-4 rounded-xl shadow-2xl flex items-start gap-3 pointer-events-auto border-l-4 border-teal-500">
+                    <CheckCircle2 size={18} className="mt-0.5 text-teal-400 shrink-0" />
                     <p className="text-sm font-medium leading-relaxed flex-1">{toast.message}</p>
-                    <button 
-                        onClick={() => removeToast(toast.id)}
-                        className="text-slate-400 hover:text-white transition-colors shrink-0"
-                    >
-                        <X size={16} />
-                    </button>
+                    <button onClick={() => setToasts(p => p.filter(t => t.id !== toast.id))} className="text-slate-400 hover:text-white shrink-0"><X size={16} /></button>
                 </div>
             ))}
         </div>
 
-        {/* Main Content Area - Scrollable */}
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto scroll-smooth">
-          <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Main Content Area */}
+        <main className={`flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto scroll-smooth no-scrollbar transition-opacity duration-300 ${isNavigating ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="max-w-7xl mx-auto">
              {renderContent()}
           </div>
         </main>
 
         <BottomNav 
           activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
+          setActiveTab={handleTabChange} 
           lang={lang} 
         />
       </div>
