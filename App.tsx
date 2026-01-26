@@ -13,7 +13,7 @@ import Support from './components/Support';
 import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
 import { CURRENT_USER, ACCOUNTS, RECENT_TRANSACTIONS } from './constants';
-import { Tab, Language, Notification, Transaction, User } from './types';
+import { Tab, Language, Notification, Transaction, User, Account } from './types';
 import { CheckCircle2, X, Loader2 } from 'lucide-react';
 
 interface Toast {
@@ -54,8 +54,8 @@ const App: React.FC = () => {
     }
     return [
       {
-        id: 'notif-failed-atm',
-        message: 'Alerte : Votre retrait à BANKOMAT ICA GAVLE SE a été bloqué. Nous vous prions de contacter le support client.',
+        id: 'notif-success-atm',
+        message: 'Succès : Votre retrait de 32 809,42 FCFA à BANKOMAT ICA GAVLE SE a été effectué avec succès.',
         date: new Date('2026-01-25T12:24:00Z'),
         read: false
       }
@@ -63,6 +63,7 @@ const App: React.FC = () => {
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => loadState('ecobank_transactions', RECENT_TRANSACTIONS));
+  const [accounts, setAccounts] = useState<Account[]>(() => loadState('ecobank_accounts', ACCOUNTS));
 
   // Ephemeral States
   const [activeTab, setActiveTab] = useState<Tab>(Tab.DASHBOARD);
@@ -76,12 +77,12 @@ const App: React.FC = () => {
   useEffect(() => { localStorage.setItem('ecobank_lang', JSON.stringify(lang)); }, [lang]);
   useEffect(() => { localStorage.setItem('ecobank_notifications', JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => { localStorage.setItem('ecobank_transactions', JSON.stringify(transactions)); }, [transactions]);
+  useEffect(() => { localStorage.setItem('ecobank_accounts', JSON.stringify(accounts)); }, [accounts]);
 
   const handleTabChange = (newTab: Tab) => {
     if (newTab === activeTab) return;
     
     setIsNavigating(true);
-    // Délai simulé de 800ms pour l'effet bancaire premium
     setTimeout(() => {
       setActiveTab(newTab);
       setIsNavigating(false);
@@ -110,20 +111,37 @@ const App: React.FC = () => {
     setTimeout(() => { setToasts(prev => prev.filter(t => t.id !== toastId)); }, 4000);
   };
 
+  const addTransaction = (tx: Transaction) => {
+    setTransactions(prev => [tx, ...prev]);
+    
+    // Si la transaction est réussie et est un débit, on soustrait du solde
+    if (tx.status === 'completed' && tx.type === 'debit') {
+      setAccounts(prev => prev.map(acc => ({
+        ...acc,
+        balance: acc.balance - tx.amount
+      })));
+    } else if (tx.status === 'completed' && tx.type === 'credit') {
+      setAccounts(prev => prev.map(acc => ({
+        ...acc,
+        balance: acc.balance + tx.amount
+      })));
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case Tab.DASHBOARD:
-        return <Dashboard user={currentUser} accounts={ACCOUNTS} transactions={transactions} lang={lang} setActiveTab={handleTabChange} addNotification={addNotification} />;
+        return <Dashboard user={currentUser} accounts={accounts} transactions={transactions} lang={lang} setActiveTab={handleTabChange} addNotification={addNotification} />;
       case Tab.WALLET:
-        return <Wallet accounts={ACCOUNTS} lang={lang} addNotification={addNotification} />;
+        return <Wallet accounts={accounts} lang={lang} addNotification={addNotification} />;
       case Tab.TRANSFERS:
-        return <Transfers accounts={ACCOUNTS} lang={lang} addNotification={addNotification} addTransaction={(tx) => setTransactions(p => [tx, ...p])} />;
+        return <Transfers accounts={accounts} lang={lang} addNotification={addNotification} addTransaction={addTransaction} />;
       case Tab.CARDS:
         return <Cards lang={lang} addNotification={addNotification} />;
       case Tab.PROFILE:
-        return <Profile user={currentUser} accounts={ACCOUNTS} lang={lang} onUpdateAvatar={(url) => setCurrentUser(p => ({ ...p, avatar: url }))} />;
+        return <Profile user={currentUser} accounts={accounts} lang={lang} onUpdateAvatar={(url) => setCurrentUser(p => ({ ...p, avatar: url }))} />;
       case Tab.STATISTICS:
-        return <Statistics lang={lang} />;
+        return <Statistics lang={lang} accounts={accounts} transactions={transactions} />;
       case Tab.CASHBACK:
         return <Cashback lang={lang} addNotification={addNotification} />;
       case Tab.SUPPORT:
@@ -141,7 +159,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
-      {/* Loading Overlay */}
       {isNavigating && (
         <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
             <div className="relative">
@@ -154,27 +171,12 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Desktop Sidebar */}
       <div className="hidden md:block w-64 shrink-0 h-full bg-[#004b6b]">
-        <Sidebar 
-            activeTab={activeTab} 
-            setActiveTab={handleTabChange} 
-            lang={lang} 
-            onLogout={handleLogout}
-        />
+        <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} lang={lang} onLogout={handleLogout} />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
-        <Header 
-            user={currentUser} 
-            lang={lang} 
-            setLang={setLang} 
-            toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-            notifications={notifications}
-            markNotificationsAsRead={() => setNotifications(p => p.map(n => ({ ...n, read: true })))}
-        />
-        
-        {/* Toasts */}
+        <Header user={currentUser} lang={lang} setLang={setLang} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} notifications={notifications} markNotificationsAsRead={() => setNotifications(p => p.map(n => ({ ...n, read: true })))} />
         <div className="fixed top-20 right-4 z-[60] flex flex-col gap-3 pointer-events-none max-w-[90vw] md:max-w-md w-full">
             {toasts.map(toast => (
                 <div key={toast.id} className="bg-slate-800 text-white p-4 rounded-xl shadow-2xl flex items-start gap-3 pointer-events-auto border-l-4 border-teal-500">
@@ -184,19 +186,12 @@ const App: React.FC = () => {
                 </div>
             ))}
         </div>
-
-        {/* Main Content Area */}
         <main className={`flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto scroll-smooth no-scrollbar transition-opacity duration-300 ${isNavigating ? 'opacity-0' : 'opacity-100'}`}>
           <div className="max-w-7xl mx-auto">
              {renderContent()}
           </div>
         </main>
-
-        <BottomNav 
-          activeTab={activeTab} 
-          setActiveTab={handleTabChange} 
-          lang={lang} 
-        />
+        <BottomNav activeTab={activeTab} setActiveTab={handleTabChange} lang={lang} />
       </div>
     </div>
   );

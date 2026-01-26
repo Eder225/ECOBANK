@@ -4,15 +4,16 @@ export const CURRENT_USER: User = {
   id: 'u1',
   name: 'ROHDIN Sofia Ann-Charlotte',
   email: 'rohdinlotta@gmail.com',
-  // Using a generic placeholder instead of a specific person's photo
   avatar: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
 };
 
+// Le solde initial est de 195 000 000. 
+// On affiche le solde APPRÈS le retrait de 32 809,42.
 export const ACCOUNTS: Account[] = [
   {
     id: 'a1',
     type: 'Compte Courant',
-    balance: 195000000,
+    balance: 194967190.58,
     currency: 'XOF',
     accountNumber: 'CI201 01001 111238311499 32'
   }
@@ -20,14 +21,14 @@ export const ACCOUNTS: Account[] = [
 
 export const RECENT_TRANSACTIONS: Transaction[] = [
     {
-        id: 't-failed-atm',
+        id: 't-success-atm',
         date: '2026-01-25T12:24:00Z',
         recipient: 'BANKOMAT ICA GAVLE SE',
         amount: 32809.42,
         currency: 'XOF',
         type: 'debit',
         category: 'Retrait ATM',
-        status: 'failed',
+        status: 'completed',
         logo: 'https://cdn-icons-png.flaticon.com/512/3013/3013210.png'
     },
     {
@@ -52,7 +53,7 @@ export const CARDS: Card[] = [
         expiry: '03/28',
         holder: 'ROHDIN Sofia Ann-Charlotte',
         status: 'active',
-        balance: 195000000,
+        balance: 194967190.58,
         currency: 'XOF'
     }
 ];
@@ -210,7 +211,7 @@ export const TRANSLATIONS: any = {
     notificationsTitle: 'Notifications',
     noNotifications: 'Aucune notification',
     thisMonth: 'ce mois-ci',
-    greatJobSaving: "Vous n'avez rien dépensé ce mois-ci. Bravo !",
+    greatJobSaving: "Excellent travail de gestion ce mois-ci.",
     downloadStatement: 'Télécharger relevé',
     downloadIBAN: 'Télécharger RIB',
     openSavings: 'Ouvrir Épargne',
@@ -342,15 +343,15 @@ export const TRANSLATIONS: any = {
     emailUs: 'Email Us',
     faq: 'Frequently Asked Questions',
     faq1: 'How do I reset my online banking password?',
-    faq1Desc: 'To reset your password, navigate to the Settings tab and select "Security". Click on "Change Password" and follow the instructions. If you cannot log in, please use the "Forgot Password?" link on the main login screen. You will receive a secure OTP via SMS to verify your identity before creating a new password.',
+    faq1Desc: 'To reset your password, navigate to the Settings tab and select "Security". Click on "Change Password" and follow the instructions.',
     faq2: 'What are the daily and weekly transfer limits?',
-    faq2Desc: 'For security reasons, the standard daily transfer limit is set to 2,000,000 XOF. The weekly cumulative limit is 10,000,000 XOF. If you need to perform a transaction exceeding these amounts, please contact your account manager or visit your nearest branch to request a temporary limit increase.',
+    faq2Desc: 'For security reasons, the standard daily transfer limit is set to 2,000,000 XOF. The weekly cumulative limit is 10,000,000 XOF.',
     faq3: 'How do I block or unblock my card?',
-    faq3Desc: 'You can instantly freeze your card directly from the Dashboard by clicking the three dots above your card and selecting "Freeze Card". Alternatively, go to the "Cards" tab. This prevents any new transactions. If your card is permanently lost, please contact support.',
+    faq3Desc: 'You can instantly freeze your card directly from the Dashboard by clicking the three dots above your card and selecting "Freeze Card".',
     faq4: 'How can I download my account statement or IBAN?',
-    faq4Desc: 'You can download official account statements (PDF/Excel) and your IBAN details directly from the "Wallet" tab. Select the specific account, click on "Details" or the three dots menu, and choose "Download Statement". You can customize the date range for statements up to the last 24 months.',
+    faq4Desc: 'You can download official account statements (PDF/Excel) and your IBAN details directly from the "Wallet" tab.',
     faq5: 'What are the fees for interbank transfers?',
-    faq5Desc: 'Les virements entre vos propres comptes Ecobank sont totalement gratuits. Les virements vers d\'autres comptes Ecobank dans le même pays sont également gratuits. Les virements vers d\'autres banques de la zone UEMOA entraînent des frais fixes de 500 XOF, quel que soit le montant. Les virements instantanés peuvent entraîner une surcharge supplémentaire de 1% de la valeur de la transaction.',
+    faq5Desc: 'Internal Ecobank transfers are free. WAEMU transfers cost 500 XOF.',
     generalSettings: 'General',
     notifications: 'Notifications',
     emailNotif: 'Email Notifications',
@@ -377,17 +378,17 @@ export const TRANSLATIONS: any = {
     month3: '3 Months',
     month6: '6 Months',
     notificationsTitle: 'Notifications',
-    noNotifications: 'Aucune notification',
-    thisMonth: 'ce mois-ci',
-    greatJobSaving: "Vous n'avez rien dépensé ce mois-ci. Bravo !",
-    downloadStatement: 'Télécharger relevé',
-    downloadIBAN: 'Télécharger RIB',
-    openSavings: 'Ouvrir Épargne',
-    startSaving: 'Commencer à épargner',
-    vsLastMonth: 'vs mois dernier',
-    noExpensesYet: 'Aucune dépense',
-    ofIncome: 'des revenus',
-    premiumCustomer: 'Client Premium since 2024',
+    noNotifications: 'No notifications',
+    thisMonth: 'this month',
+    greatJobSaving: "Excellent management job this month.",
+    downloadStatement: 'Download Statement',
+    downloadIBAN: 'Download IBAN',
+    openSavings: 'Open Savings',
+    startSaving: 'Start saving',
+    vsLastMonth: 'vs last month',
+    noExpensesYet: 'No expenses',
+    ofIncome: 'of income',
+    premiumCustomer: 'Premium Client since 2024',
     personalInfo: 'Personal Information',
     accountDetails: 'Account Details',
     editPhoto: 'Edit Photo',
